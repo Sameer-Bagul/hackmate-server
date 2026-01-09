@@ -2,14 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { ProfileModel, UserModel } from '@hackmate/db';
 
-const ProfileUpdateSchema = z.object({
-    bio: z.string().optional(),
-    intent: z.enum(['startup', 'collab', 'friends', 'mentorship']).optional(),
-    stack: z.array(z.string()).optional(),
-    location: z.string().optional(),
-    github: z.string().optional(),
-    website: z.string().optional(),
-});
+import { ProfileUpdateSchema } from '@hackmate/shared';
 
 const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     fastify.addHook('onRequest', fastify.authenticate);

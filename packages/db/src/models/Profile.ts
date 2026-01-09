@@ -6,6 +6,13 @@ export interface IProfile extends Document {
     intent: 'startup' | 'collab' | 'friends' | 'mentorship';
     stack: string[];
     location?: string;
+    // New Fields
+    age?: number;
+    gender?: 'male' | 'female' | 'other';
+    company?: string;
+    linkedin?: string;
+    twitter?: string;
+    interests?: string[];
     github?: string;
     website?: string;
 }
@@ -21,6 +28,14 @@ const ProfileSchema = new Schema<IProfile>(
         },
         stack: [{ type: String }],
         location: { type: String },
+        // New Fields
+        age: { type: Number },
+        gender: { type: String, enum: ['male', 'female', 'other'] },
+        company: { type: String },
+        linkedin: { type: String },
+        twitter: { type: String },
+        interests: [{ type: String }],
+
         github: { type: String },
         website: { type: String },
     },

@@ -1,6 +1,6 @@
 Features for a CLI based chatting , networking and dating platform 
 
-[ ] God Feature [Owner or app admin] 
+[x] God Feature [Owner or app admin] 
     - Create a user 
     - Delete a user 
     - Update a user 
@@ -10,7 +10,7 @@ Features for a CLI based chatting , networking and dating platform
     - Control Groups 
     - etc
 
-[ ] auth feature 
+[x] auth feature 
     - sign in 
     - sign up 
     - sign out
@@ -18,7 +18,7 @@ Features for a CLI based chatting , networking and dating platform
     - reset password
     - verify email 
 
-[ ] Account setup 
+[x] Account setup 
     - select username 
     - add name
     - add age 
@@ -34,66 +34,66 @@ Features for a CLI based chatting , networking and dating platform
     - add Interests 
 
 [ ] User feature 
-    - Find a match 
-    - chat with user 
-    - send message  
-    - check inbox 
-    - view the uesr porfile 
-    - get the list of matches with filters like location, Github profile etc
-    - send friend request 
-    - accept friend request 
-    - reject friend request 
-    - block user 
-    - unblock user 
-    - view friends list 
-    - view friend requests list 
-    - view blocked users list 
-    - Post a project on a public thread, here basically the user can post a project and the other users can apply for it to collaborate 
-    - view spacific project 
-    - view project details 
-    - apply for a project 
-    - accept a project 
-    - reject a project 
-    - delete a project 
+    - [x] Find a match 
+    - [x] chat with user 
+    - [x] send message  
+    - [x] check inbox 
+    - [x] view the uesr porfile 
+    - [ ] get the list of matches with filters like location, Github profile etc
+    - [x] send friend request 
+    - [x] accept friend request 
+    - [x] reject friend request 
+    - [x] block user 
+    - [ ] unblock user 
+    - [x] view friends list 
+    - [x] view friend requests list 
+    - [ ] view blocked users list 
+    - [x] Post a project on a public thread, here basically the user can post a project and the other users can apply for it to collaborate 
+    - [x] view spacific project 
+    - [x] view project details 
+    - [x] apply for a project 
+    - [x] accept a project 
+    - [ ] reject a project 
+    - [ ] delete a project 
     - search a group 
     - send request to join a group 
     - accept group request 
     - reject group request 
     - view list of group invitations
 
-[ ] Notification feature 
-    - get notification when a user sends a friend request 
-    - get notification when a user accepts your friend request 
-    - get notification when a user rejects your friend request 
-    - get notification when a user blocks you 
-    - get notification when a user unblocks you 
-    - get notification when a user sends you a message 
-    - get notification when a user likes your post 
-    - get notification when a user comments on your post 
-    - get notification when a user shares your post 
-    - get notification when a user likes your project 
-    - get notification when a user comments on your project 
-    - get notification when a user shares your project 
+[x] Notification feature 
+    - [x] get notification when a user sends a friend request 
+    - [ ] get notification when a user accepts your friend request 
+    - [ ] get notification when a user rejects your friend request 
+    - [ ] get notification when a user blocks you 
+    - [ ] get notification when a user unblocks you 
+    - [ ] get notification when a user sends you a message 
+    - [ ] get notification when a user likes your post 
+    - [ ] get notification when a user comments on your post 
+    - [ ] get notification when a user shares your post 
+    - [ ] get notification when a user likes your project 
+    - [ ] get notification when a user comments on your project 
+    - [ ] get notification when a user shares your project 
     - etc
     
-[ ] Group feature 
-    - create a group [YOU WILL BECOME THE ADMIN]
-    - join a group 
-    - leave a group 
-    - view group list 
-    - view group details 
-    - view group members 
-    - add user to group 
-    - send message in group 
+[x] Group feature 
+    - [x] create a group [YOU WILL BECOME THE ADMIN]
+    - [x] join a group 
+    - [ ] leave a group 
+    - [x] view group list 
+    - [x] view group details 
+    - [x] view group members 
+    - [x] add user to group 
+    - [ ] send message in group 
 
-[ ] Group Admin feature 
-    - add agenda to the group 
-    - accept group request 
-    - reject group request 
-    - remove user from group 
-    - add user to group 
-    - view list of group requests
-    - view list of group invitations
+[x] Group Admin feature 
+    - [ ] add agenda to the group 
+    - [x] accept group request 
+    - [ ] reject group request 
+    - [ ] remove user from group 
+    - [ ] add user to group 
+    - [ ] view list of group requests
+    - [ ] view list of group invitations
     - etc
 
 [ ] etc

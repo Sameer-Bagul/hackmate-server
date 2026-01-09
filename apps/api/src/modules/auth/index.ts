@@ -3,16 +3,7 @@ import { z } from 'zod';
 import { UserModel } from '@hackmate/db';
 import argon2 from 'argon2';
 
-const SignupSchema = z.object({
-    username: z.string().min(3),
-    email: z.string().email(),
-    password: z.string().min(8),
-});
-
-const LoginSchema = z.object({
-    username: z.string(),
-    password: z.string(),
-});
+import { SignupSchema, LoginSchema } from '@hackmate/shared';
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
@@ -31,8 +22,8 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             passwordHash,
         });
 
-        const token = fastify.jwt.sign({ id: user._id, username: user.username });
-        return { token, user: { id: user._id, username: user.username, email: user.email } };
+        const token = fastify.jwt.sign({ id: user._id, username: user.username, role: user.role });
+        return { token, user: { id: user._id, username: user.username, email: user.email, role: user.role } };
     });
 
     fastify.post('/login', async (request, reply) => {
@@ -48,8 +39,8 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             return reply.code(401).send({ message: 'Invalid credentials' });
         }
 
-        const token = fastify.jwt.sign({ id: user._id, username: user.username });
-        return { token, user: { id: user._id, username: user.username, email: user.email } };
+        const token = fastify.jwt.sign({ id: user._id, username: user.username, role: user.role });
+        return { token, user: { id: user._id, username: user.username, email: user.email, role: user.role } };
     });
 };
 

@@ -21,4 +21,8 @@ declare module 'fastify' {
     interface FastifyInstance {
         authenticate: any;
     }
+    interface FastifyJWT {
+        payload: { id: string; username: string; role: 'admin' | 'user' };
+        user: { id: string; username: string; role: 'admin' | 'user' };
+    }
 }

@@ -1,35 +1,26 @@
-import React, { useState } from 'react';
-import { Text, Box, useApp } from 'ink';
+import React from 'react';
+import { Text, Box } from 'ink';
 import TextInput from 'ink-text-input';
-import api from '../api.js';
-import { saveToken, saveUser } from '../config.js';
 
-export const Login = () => {
-    const { exit } = useApp();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [step, setStep] = useState<'username' | 'password'>('username');
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+interface LoginScreenProps {
+    username: string;
+    setUsername: (v: string) => void;
+    password: string;
+    setPassword: (v: string) => void;
+    step: 'username' | 'password';
+    setStep: (v: 'username' | 'password') => void;
+    error: string | null;
+    loading: boolean;
+    handleSubmit: () => void;
+}
 
-    const handleSubmit = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { data } = await api.post('/auth/login', { username, password });
-            saveToken(data.token);
-            saveUser(data.user);
-            console.log('✅ Login successful!');
-            exit();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed');
-            setLoading(false);
-            setStep('username');
-            setUsername('');
-            setPassword('');
-        }
-    };
-
+export const LoginScreen: React.FC<LoginScreenProps> = ({
+    username, setUsername,
+    password, setPassword,
+    step, setStep,
+    error, loading,
+    handleSubmit
+}) => {
     if (loading) {
         return <Text>Authenticating...</Text>;
     }
