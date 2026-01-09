@@ -1,5 +1,15 @@
 Features for a CLI based chatting , networking and dating platform 
 
+[ ] God Feature [Owner or app admin] 
+    - Create a user 
+    - Delete a user 
+    - Update a user 
+    - View a user 
+    - View all users 
+    - Control public thread 
+    - Control Groups 
+    - etc
+
 [ ] auth feature 
     - sign in 
     - sign up 
