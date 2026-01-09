@@ -1,0 +1,24 @@
+{
+    "name": "@hackmate/db",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint src/**/*.ts",
+        "seed": "tsx src/seed.ts"
+    },
+    "dependencies": {
+        "argon2": "^0.44.0",
+        "dotenv": "^16.0.0",
+        "mongoose": "^8.0.0",
+        "zod": "^3.0.0"
+    },
+    "devDependencies": {
+        "@hackmate/tsconfig": "workspace:*",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0"
+    }
+}
