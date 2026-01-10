@@ -1,18 +1,16 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "3001:3001"
     environment:
       - NODE_ENV=production
+      - PORT=3001
       - MONGO_URI=mongodb://mongo:27017/hackmate
       - REDIS_URI=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET:-supersecret}
-      - PORT=3001
+      - JWT_SECRET=supersecret
     depends_on:
       - mongo
       - redis
@@ -24,7 +22,6 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
-    restart: always
 
   redis:
     image: redis:alpine
@@ -32,7 +29,6 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    restart: always
 
 volumes:
   mongo_data:
