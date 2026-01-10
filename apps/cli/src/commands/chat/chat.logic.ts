@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
 import api from '../../api.js';
-import { useSocket } from '../../context/index.js';
+import { useSocket, useAuth } from '../../context/index.js';
 
 interface UseChatLogicProps {
     targetUsername?: string;
@@ -13,11 +13,25 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
     const { exit: appExit } = useApp();
     const exit = onExit || appExit;
     const { socket, isConnected } = useSocket();
+    const { user } = useAuth();
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState('');
     const [status, setStatus] = useState('Connecting...');
     const [targetId, setTargetId] = useState<string | null>(null);
     const [groupId, setGroupId] = useState<string | null>(null);
+
+    // Helper to format messages for UI (handling "me" vs others)
+    const formatMessage = (msg: any) => {
+        const senderIdObj = msg.senderId;
+        const senderId = typeof senderIdObj === 'object' ? senderIdObj._id : senderIdObj;
+        const username = typeof senderIdObj === 'object' ? senderIdObj.username : undefined;
+
+        return {
+            ...msg,
+            senderId: senderId === user?.id ? 'me' : senderId,
+            username: username
+        };
+    };
 
     useEffect(() => {
         const init = async () => {
@@ -30,7 +44,7 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
                     setStatus(`talking to @${targetUsername}`);
 
                     const hist = await api.get(`/chat/history/${data.user.id}`);
-                    setMessages(hist.data);
+                    setMessages(hist.data.map(formatMessage));
                 } else if (groupName) {
                     setStatus(`Looking for group ${groupName}...`);
                     const { data: groups } = await api.get('/groups');
@@ -43,7 +57,7 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
                     setStatus(`talking in #${groupName}`);
 
                     const hist = await api.get(`/chat/history/group/${group._id}`);
-                    setMessages(hist.data);
+                    setMessages(hist.data.map(formatMessage));
                 }
 
                 if (!isConnected || !socket) {
@@ -73,21 +87,27 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
                 setStatus(`Error: ${e.message}`);
             }
         };
-        init();
-    }, [targetUsername, groupName, groupId, isConnected, socket]);
+        if (user) init();
+    }, [targetUsername, groupName, groupId, isConnected, socket, user?.id]);
 
     useEffect(() => {
         if (!socket) return;
 
         const onDmReceive = (msg: any) => {
-            if (targetId && msg.senderId === targetId) {
-                setMessages(prev => [...prev, msg]);
+            const incomingSenderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
+            // If I am chatting with targetId, and incoming message is FROM targetId
+            if (targetId && incomingSenderId === targetId) {
+                setMessages(prev => [...prev, formatMessage(msg)]);
             }
         };
 
         const onGroupReceive = (msg: any) => {
             if (groupId && msg.groupId === groupId) {
-                setMessages(prev => [...prev, msg]);
+                // Check if it's not from me (optimistic update handles "me")
+                const incomingSenderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
+                if (incomingSenderId !== user?.id) {
+                    setMessages(prev => [...prev, formatMessage(msg)]);
+                }
             }
         };
 
@@ -104,7 +124,7 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
             socket.off('group:receive', onGroupReceive);
             socket.off('connect');
         };
-    }, [socket, targetId, groupId]);
+    }, [socket, targetId, groupId, user?.id]);
 
     const handleSend = async () => {
         if (!input.trim()) return;

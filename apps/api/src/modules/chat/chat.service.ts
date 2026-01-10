@@ -7,7 +7,9 @@ export const getDirectMessages = async (currentUserId: string, otherUserId: stri
             { senderId: currentUserId, receiverId: otherUserId },
             { senderId: otherUserId, receiverId: currentUserId },
         ],
-    }).sort({ createdAt: 1 }).limit(50);
+    }).sort({ createdAt: 1 })
+        .limit(50)
+        .populate('senderId', 'username');
 };
 
 export const getGroupMessages = async (groupId: string) => {

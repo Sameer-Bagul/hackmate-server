@@ -13,14 +13,21 @@ interface Conversation {
     };
 }
 
+import { useChatLogic } from './chat.logic.js';
+import { ChatScreen } from './chat.screen.js';
+
 export const ChatList = () => {
     const { exit } = useApp();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
 
     useEffect(() => {
+        // Only load if not chatting
+        if (activeChatUser) return;
+
         api.get('/chat/conversations')
             .then(({ data }) => {
                 setConversations(data);
@@ -30,9 +37,11 @@ export const ChatList = () => {
                 setError(err.message || 'Failed to load conversations');
                 setLoading(false);
             });
-    }, []);
+    }, [activeChatUser]);
 
     useInput((input, key) => {
+        if (activeChatUser) return; // Disable list nav when chatting
+
         if (key.escape) {
             exit();
         }
@@ -43,17 +52,16 @@ export const ChatList = () => {
             setSelectedIndex(prev => Math.min(conversations.length - 1, prev + 1));
         }
         if (key.return) {
-            // TODO: Navigate to chat? 
-            // For now, just exit and tell user command
-            // Ideally we'd switch view, but CLI router is simple.
-            // We can just print the command to run.
             const target = conversations[selectedIndex]?.user.username;
             if (target) {
-                console.log(`\n\nRun: hackmate chat dm ${target}\n`);
-                exit();
+                setActiveChatUser(target);
             }
         }
     });
+
+    if (activeChatUser) {
+        return <ActiveChat username={activeChatUser} onBack={() => setActiveChatUser(null)} />;
+    }
 
     if (loading) return <Text>Loading conversations...</Text>;
     if (error) return <Text color="red">Error: {error}</Text>;
@@ -90,4 +98,9 @@ export const ChatList = () => {
             </Box>
         </Box>
     );
+};
+
+const ActiveChat = ({ username, onBack }: { username: string, onBack: () => void }) => {
+    const logic = useChatLogic({ targetUsername: username, onExit: onBack });
+    return <ChatScreen {...logic} />;
 };
