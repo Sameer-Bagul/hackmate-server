@@ -9,11 +9,15 @@ interface SignupScreenProps {
     setEmail: (v: string) => void;
     password: string;
     setPassword: (v: string) => void;
-    step: 'username' | 'email' | 'password';
-    setStep: (v: 'username' | 'email' | 'password') => void;
+    step: 'username' | 'email' | 'password' | 'otp';
+    setStep: (v: 'username' | 'email' | 'password' | 'otp') => void;
     error: string | null;
     loading: boolean;
     handleSubmit: () => void;
+    otp: string;
+    setOtp: (v: string) => void;
+    handleVerifyParams: () => void;
+    status: string;
 }
 
 export const SignupScreen: React.FC<SignupScreenProps> = ({
@@ -22,10 +26,30 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({
     password, setPassword,
     step, setStep,
     error, loading,
-    handleSubmit
+    handleSubmit,
+    otp, setOtp, handleVerifyParams, status
 }) => {
-    if (loading) {
-        return <Text>Creating account...</Text>;
+    if (loading && !step.includes('otp')) {
+        return <Text>{status || 'Loading...'}</Text>;
+    }
+
+    if (step === 'otp') {
+        return (
+            <Box flexDirection="column" padding={1} borderStyle="round" borderColor="yellow">
+                <Text bold>📩 Verifying Email</Text>
+                <Text>We sent a code to {email}. Check your console/email!</Text>
+                <Text color="red">{error}</Text>
+                <Box marginTop={1}>
+                    <Text>Enter OTP: </Text>
+                    <TextInput
+                        value={otp}
+                        onChange={setOtp}
+                        onSubmit={handleVerifyParams}
+                    />
+                </Box>
+                {loading && <Text>Verifying code...</Text>}
+            </Box>
+        );
     }
 
     return (

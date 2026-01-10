@@ -35,4 +35,7 @@ const ProjectSchema = new Schema<IProject>(
     { timestamps: true }
 );
 
+ProjectSchema.index({ ownerId: 1 });
+ProjectSchema.index({ status: 1 });
+
 export const ProjectModel = mongoose.model<IProject>('Project', ProjectSchema);

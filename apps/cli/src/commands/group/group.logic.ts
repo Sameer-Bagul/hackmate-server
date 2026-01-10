@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
 import api from '../../api.js';
+import { useAuth } from '../../context/index.js';
 
 interface UseGroupLogicProps {
     action?: 'list' | 'create' | 'view' | 'join' | 'accept';
@@ -10,6 +11,7 @@ interface UseGroupLogicProps {
 
 export const useGroupLogic = ({ action = 'list', id, extraArg }: UseGroupLogicProps) => {
     const { exit } = useApp();
+    const { isAuthenticated } = useAuth();
     const [data, setData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -19,6 +21,7 @@ export const useGroupLogic = ({ action = 'list', id, extraArg }: UseGroupLogicPr
 
     useEffect(() => {
         const run = async () => {
+            if (!isAuthenticated) return;
             try {
                 if (action === 'list') {
                     const res = await api.get('/groups');
@@ -44,7 +47,7 @@ export const useGroupLogic = ({ action = 'list', id, extraArg }: UseGroupLogicPr
             }
         };
         run();
-    }, [action, id, extraArg]);
+    }, [action, id, extraArg, isAuthenticated]);
 
     const handleCreateSubmit = async () => {
         setLoading(true);

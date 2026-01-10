@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const ProfileUpdateSchema = z.object({
+    fullName: z.string().optional(),
     bio: z.string().optional(),
     intent: z.enum(['startup', 'collab', 'friends', 'mentorship']).optional(),
     stack: z.array(z.string()).optional(),
@@ -13,6 +14,7 @@ export const ProfileUpdateSchema = z.object({
     interests: z.array(z.string()).optional(),
     github: z.string().optional(),
     website: z.string().optional(),
+    mobileNumber: z.string().optional(),
 });
 
 export type ProfileUpdateBody = z.infer<typeof ProfileUpdateSchema>;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
-import { io, Socket } from 'socket.io-client';
 import api from '../../api.js';
+import { useSocket } from '../../context/index.js';
 
 interface UseChatLogicProps {
     targetUsername?: string;
@@ -10,10 +10,10 @@ interface UseChatLogicProps {
 
 export const useChatLogic = ({ targetUsername, groupName }: UseChatLogicProps) => {
     const { exit } = useApp();
+    const { socket } = useSocket();
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState('');
     const [status, setStatus] = useState('Connecting...');
-    const [socket, setSocket] = useState<Socket | null>(null);
     const [targetId, setTargetId] = useState<string | null>(null);
     const [groupId, setGroupId] = useState<string | null>(null);
 
@@ -44,41 +44,51 @@ export const useChatLogic = ({ targetUsername, groupName }: UseChatLogicProps) =
                     setMessages(hist.data);
                 }
 
-                const token = api.defaults.headers.common['Authorization']?.toString().replace('Bearer ', '');
-                const newSocket = io('http://localhost:3000', {
-                    auth: { token }
-                });
+                if (!socket) {
+                    setStatus('Socket disconnected...');
+                    return;
+                }
 
-                newSocket.on('connect', () => {
-                    if (groupId) {
-                        newSocket.emit('join:group', groupId);
-                    }
-                });
-
-                newSocket.on('dm:receive', (msg: any) => {
-                    if (targetId && msg.senderId === targetId) {
-                        setMessages(prev => [...prev, msg]);
-                    }
-                });
-
-                newSocket.on('group:receive', (msg: any) => {
-                    if (groupId && msg.groupId === groupId) {
-                        setMessages(prev => [...prev, msg]);
-                    }
-                });
-
-                setSocket(newSocket);
+                if (groupId && socket.connected) {
+                    socket.emit('join:group', groupId);
+                }
 
             } catch (e: any) {
                 setStatus(`Error: ${e.message}`);
             }
         };
         init();
+    }, [targetUsername, groupName, groupId, socket?.connected]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const onDmReceive = (msg: any) => {
+            if (targetId && msg.senderId === targetId) {
+                setMessages(prev => [...prev, msg]);
+            }
+        };
+
+        const onGroupReceive = (msg: any) => {
+            if (groupId && msg.groupId === groupId) {
+                setMessages(prev => [...prev, msg]);
+            }
+        };
+
+        socket.on('dm:receive', onDmReceive);
+        socket.on('group:receive', onGroupReceive);
+
+        // Re-join group on reconnect
+        socket.on('connect', () => {
+            if (groupId) socket.emit('join:group', groupId);
+        });
 
         return () => {
-            socket?.disconnect();
+            socket.off('dm:receive', onDmReceive);
+            socket.off('group:receive', onGroupReceive);
+            socket.off('connect');
         };
-    }, [targetUsername, groupName, groupId, targetId]); // added deps to be safe, though init logic might only need initial run logic
+    }, [socket, targetId, groupId]);
 
     const handleSend = async () => {
         if (!input.trim()) return;

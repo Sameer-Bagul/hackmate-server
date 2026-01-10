@@ -3,7 +3,7 @@ import { useApp } from 'ink';
 import api from '../../api.js';
 import { getUser } from '../../config.js';
 
-export const useProfileViewLogic = () => {
+export const useProfileViewLogic = (targetUsername?: string) => {
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,8 @@ export const useProfileViewLogic = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const { data } = await api.get('/profile');
+                const endpoint = targetUsername ? `/profile/${targetUsername}` : '/profile';
+                const { data } = await api.get(endpoint);
                 setProfile(data);
             } catch (err: any) {
                 setError(err.response?.data?.message || 'Failed to fetch profile');
@@ -21,7 +22,7 @@ export const useProfileViewLogic = () => {
             }
         };
         fetchProfile();
-    }, []);
+    }, [targetUsername]);
 
     return {
         profile,

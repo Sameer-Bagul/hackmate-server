@@ -43,26 +43,52 @@ export const useSignupLogic = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [step, setStep] = useState<'username' | 'email' | 'password'>('username');
+    const [otp, setOtp] = useState('');
+    const [step, setStep] = useState<'username' | 'email' | 'password' | 'otp'>('username');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState<string>('');
 
     const handleSubmit = async () => {
         setLoading(true);
         setError(null);
+        setStatus('Creating account...');
         try {
+            // 1. Signup
             const { data } = await api.post('/auth/signup', { username, email, password });
             saveToken(data.token);
             saveUser(data.user);
-            console.log('✅ Signup successful! Welcome to HackMate.');
-            exit();
+
+            // 2. Send OTP automatically
+            setStatus('Account created! Sending verification OTP...');
+            await api.post('/auth/otp/send');
+
+            setLoading(false);
+            setStep('otp');
+            setStatus('');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Signup failed');
             setLoading(false);
-            setStep('username');
-            setUsername('');
-            setEmail('');
-            setPassword('');
+            // Reset if signup failed
+            if (step !== 'otp') {
+                setStep('username');
+                setUsername('');
+                setEmail('');
+                setPassword('');
+            }
+        }
+    };
+
+    const handleVerifyParams = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            await api.post('/auth/otp/verify', { code: otp });
+            console.log('✅ Signup & Verification successful! Welcome to HackMate.');
+            exit();
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Invalid OTP');
+            setLoading(false);
         }
     };
 
@@ -70,8 +96,10 @@ export const useSignupLogic = () => {
         username, setUsername,
         email, setEmail,
         password, setPassword,
+        otp, setOtp,
         step, setStep,
-        error, loading,
-        handleSubmit
+        error, loading, status,
+        handleSubmit,
+        handleVerifyParams
     };
 };

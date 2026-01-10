@@ -42,6 +42,48 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
         const token = fastify.jwt.sign({ id: user._id, username: user.username, role: user.role });
         return { token, user: { id: user._id, username: user.username, email: user.email, role: user.role } };
     });
+
+    fastify.post('/otp/send', { onRequest: [fastify.authenticate] }, async (request, reply) => {
+        // @ts-ignore
+        const userId = request.user.id;
+        const user = await UserModel.findById(userId) as any;
+        if (!user) return reply.code(404).send({ message: 'User not found' });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otpCode = otp;
+        user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+        await user.save();
+
+        console.log(`📧 [MOCK EMAIL] To: ${user.email} | OTP: ${otp}`);
+
+        return { message: 'OTP sent' };
+    });
+
+    fastify.post('/otp/verify', { onRequest: [fastify.authenticate] }, async (request, reply) => {
+        // @ts-ignore
+        const userId = request.user.id;
+        const { code } = request.body as { code: string };
+        const user = await UserModel.findById(userId) as any;
+
+        if (!user) return reply.code(404).send({ message: 'User not found' });
+
+        if (user.isVerified) return { message: 'Already verified' };
+
+        if (!user.otpCode || user.otpCode !== code) {
+            return reply.code(400).send({ message: 'Invalid OTP' });
+        }
+
+        if (!user.otpExpires || new Date() > user.otpExpires) {
+            return reply.code(400).send({ message: 'OTP expired' });
+        }
+
+        user.isVerified = true;
+        user.otpCode = undefined;
+        user.otpExpires = undefined;
+        await user.save();
+
+        return { message: 'Email verified successfully' };
+    });
 };
 
 export default auth;

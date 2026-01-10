@@ -2,7 +2,10 @@ export {
     CreateProjectSchema,
     ProjectParamsSchema,
     ApplyProjectSchema,
-    ApplicantActionSchema,
+    ApplicantActionSchema
+} from '@hackmate/shared';
+
+export type {
     CreateProjectBody,
     ProjectParams,
     ApplyProjectBody,

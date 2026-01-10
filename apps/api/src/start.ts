@@ -40,7 +40,7 @@ const start = async () => {
         // });
 
         // Initialize Socket Service
-        const { setupSocketService } = await import('./plugins/infra/socketService.js');
+        const { setupSocketService } = await import('./services/socketService.js');
         setupSocketService(app);
 
         // Graceful shutdown

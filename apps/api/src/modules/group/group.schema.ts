@@ -1,7 +1,10 @@
 export {
     CreateGroupSchema,
     GroupParamsSchema,
-    GroupUserActionSchema,
+    GroupUserActionSchema
+} from '@hackmate/shared';
+
+export type {
     CreateGroupBody,
     GroupParams,
     GroupUserActionBody

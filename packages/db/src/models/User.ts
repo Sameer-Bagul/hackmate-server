@@ -10,6 +10,9 @@ export interface IUser extends Document {
     blocked: mongoose.Types.ObjectId[];
     createdAt: Date;
     updatedAt: Date;
+    otpCode?: string;
+    otpExpires?: Date;
+    isVerified?: boolean;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -21,6 +24,9 @@ const UserSchema = new Schema<IUser>(
         profileId: { type: Schema.Types.ObjectId, ref: 'Profile' },
         friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
         blocked: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+        otpCode: { type: String },
+        otpExpires: { type: Date },
+        isVerified: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

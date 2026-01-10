@@ -15,8 +15,13 @@ import notification from './modules/notification/index.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+
 export async function buildApp(opts: FastifyServerOptions = {}): Promise<FastifyInstance> {
     const app = fastify(opts);
+
+    app.setValidatorCompiler(validatorCompiler);
+    app.setSerializerCompiler(serializerCompiler);
 
     // Register Infra Plugins
     await app.register(autoload, {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
 import api from '../../api.js';
+import { useAuth } from '../../context/index.js';
 
 interface UseNetworkLogicProps {
     action?: 'list' | 'requests' | 'add' | 'accept' | 'block';
@@ -9,12 +10,15 @@ interface UseNetworkLogicProps {
 
 export const useNetworkLogic = ({ action = 'list', target }: UseNetworkLogicProps) => {
     const { exit } = useApp();
+    const { isAuthenticated } = useAuth();
     const [data, setData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const run = async () => {
+            if (!isAuthenticated) return;
+
             try {
                 if (action === 'list') {
                     const res = await api.get('/network/friends');
@@ -55,7 +59,7 @@ export const useNetworkLogic = ({ action = 'list', target }: UseNetworkLogicProp
         } else {
             setLoading(false);
         }
-    }, [action, target]);
+    }, [action, target, isAuthenticated]);
 
     return {
         action,

@@ -43,4 +43,7 @@ const GroupSchema = new Schema<IGroup>(
     { timestamps: true }
 );
 
+GroupSchema.index({ ownerId: 1 });
+GroupSchema.index({ 'members.userId': 1 });
+
 export const GroupModel = mongoose.model<IGroup>('Group', GroupSchema);

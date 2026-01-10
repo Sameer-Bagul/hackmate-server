@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
 import api from '../../api.js';
+import { useAuth } from '../../context/index.js';
 
 interface UseProjectLogicProps {
     action?: 'list' | 'create' | 'view' | 'apply' | 'accept';
@@ -10,6 +11,7 @@ interface UseProjectLogicProps {
 
 export const useProjectLogic = ({ action = 'list', id, extraArg }: UseProjectLogicProps) => {
     const { exit } = useApp();
+    const { isAuthenticated } = useAuth();
     const [data, setData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -23,6 +25,7 @@ export const useProjectLogic = ({ action = 'list', id, extraArg }: UseProjectLog
 
     useEffect(() => {
         const run = async () => {
+            if (!isAuthenticated) return;
             try {
                 if (action === 'list') {
                     const res = await api.get('/project');
@@ -47,7 +50,7 @@ export const useProjectLogic = ({ action = 'list', id, extraArg }: UseProjectLog
             }
         };
         run();
-    }, [action, id, extraArg]);
+    }, [action, id, extraArg, isAuthenticated]);
 
     const handleCreateSubmit = async () => {
         setLoading(true);

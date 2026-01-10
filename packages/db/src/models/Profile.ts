@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IProfile extends Document {
     userId: mongoose.Types.ObjectId;
+    fullName?: string;
     bio?: string;
     intent: 'startup' | 'collab' | 'friends' | 'mentorship';
     stack: string[];
@@ -15,11 +16,13 @@ export interface IProfile extends Document {
     interests?: string[];
     github?: string;
     website?: string;
+    mobileNumber?: string;
 }
 
 const ProfileSchema = new Schema<IProfile>(
     {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+        fullName: { type: String },
         bio: { type: String },
         intent: {
             type: String,
@@ -38,6 +41,7 @@ const ProfileSchema = new Schema<IProfile>(
 
         github: { type: String },
         website: { type: String },
+        mobileNumber: { type: String },
     },
     { timestamps: true }
 );
