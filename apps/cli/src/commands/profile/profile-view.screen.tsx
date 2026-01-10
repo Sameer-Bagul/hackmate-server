@@ -15,7 +15,7 @@ export const ProfileViewScreen: React.FC<ProfileViewScreenProps> = ({ profile, l
 
     return (
         <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan">
-            <Text bold color="cyan"> @{user?.username} </Text>
+            <Text bold color="cyan"> @{profile?.user?.username || user?.username} </Text>
             <Text>───────────────</Text>
             <Text>Intent: <Text color="green">{profile.intent}</Text></Text>
             <Text>Bio: {profile.bio || 'N/A'}</Text>

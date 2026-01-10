@@ -4,6 +4,7 @@ import api from '../../api.js';
 import { getUser } from '../../config.js';
 
 export const useProfileViewLogic = (targetUsername?: string) => {
+    const { exit } = useApp();
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -15,8 +16,11 @@ export const useProfileViewLogic = (targetUsername?: string) => {
                 const endpoint = targetUsername ? `/profile/${targetUsername}` : '/profile';
                 const { data } = await api.get(endpoint);
                 setProfile(data);
+                // Auto-exit after a short delay to allow render
+                setTimeout(() => exit(), 100);
             } catch (err: any) {
                 setError(err.response?.data?.message || 'Failed to fetch profile');
+                setTimeout(() => exit(), 100);
             } finally {
                 setLoading(false);
             }

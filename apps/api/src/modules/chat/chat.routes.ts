@@ -23,6 +23,15 @@ const chatRoutes: FastifyPluginAsync = async (fastify) => {
         },
         chatController.getGroupChatHistoryHandler
     );
+
+    app.get(
+        '/conversations',
+        {
+            onRequest: [fastify.authenticate],
+            // Schema response could be defined but lazy for now
+        },
+        chatController.getConversationsHandler
+    );
 };
 
 export default chatRoutes;

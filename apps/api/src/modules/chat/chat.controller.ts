@@ -16,6 +16,7 @@ export const getChatHistoryHandler = async (
     }
 
     const messages = await chatService.getDirectMessages(currentUserId, userId);
+    console.log(`Getting chat history between ${currentUserId} and ${userId}`);
     return messages;
 };
 
@@ -31,4 +32,13 @@ export const getGroupChatHistoryHandler = async (
 
     const messages = await chatService.getGroupMessages(groupId);
     return messages;
+};
+
+export const getConversationsHandler = async (
+    request: FastifyRequest,
+    reply: FastifyReply
+) => {
+    const currentUserId = (request as AuthRequest).user.id;
+    const conversations = await chatService.getConversations(currentUserId);
+    return conversations;
 };

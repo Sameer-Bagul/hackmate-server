@@ -6,11 +6,13 @@ import { useSocket } from '../../context/index.js';
 interface UseChatLogicProps {
     targetUsername?: string;
     groupName?: string;
+    onExit?: () => void;
 }
 
-export const useChatLogic = ({ targetUsername, groupName }: UseChatLogicProps) => {
-    const { exit } = useApp();
-    const { socket } = useSocket();
+export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogicProps) => {
+    const { exit: appExit } = useApp();
+    const exit = onExit || appExit;
+    const { socket, isConnected } = useSocket();
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState('');
     const [status, setStatus] = useState('Connecting...');
@@ -44,13 +46,27 @@ export const useChatLogic = ({ targetUsername, groupName }: UseChatLogicProps) =
                     setMessages(hist.data);
                 }
 
-                if (!socket) {
-                    setStatus('Socket disconnected...');
+                if (!isConnected || !socket) {
+                    if (targetUsername) {
+                        setStatus(`talking to @${targetUsername} (Socket Disconnected...)`);
+                    } else if (groupName) {
+                        setStatus(`talking in #${groupName} (Socket Disconnected...)`);
+                    } else {
+                        setStatus('Socket disconnected...');
+                    }
                     return;
                 }
 
-                if (groupId && socket.connected) {
+                if (groupId) {
                     socket.emit('join:group', groupId);
+                }
+
+                if (!targetUsername && !groupName) {
+                    setStatus('Connected (Lobby)');
+                } else if (targetUsername) {
+                    setStatus(`talking to @${targetUsername} (Connected)`);
+                } else if (groupName) {
+                    setStatus(`talking in #${groupName} (Connected)`);
                 }
 
             } catch (e: any) {
@@ -58,7 +74,7 @@ export const useChatLogic = ({ targetUsername, groupName }: UseChatLogicProps) =
             }
         };
         init();
-    }, [targetUsername, groupName, groupId, socket?.connected]);
+    }, [targetUsername, groupName, groupId, isConnected, socket]);
 
     useEffect(() => {
         if (!socket) return;

@@ -11,3 +11,5 @@ export const Chat: React.FC<ChatProps> = (props) => {
     const logic = useChatLogic(props);
     return <ChatScreen {...logic} />;
 };
+
+export * from './ChatList.js';

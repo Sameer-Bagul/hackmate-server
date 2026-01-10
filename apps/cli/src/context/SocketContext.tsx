@@ -10,7 +10,7 @@ interface SocketContextType {
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 // Hardcoded for now, or move to config/env
-const SOCKET_URL = 'http://localhost:3000';
+const SOCKET_URL = 'http://localhost:3001';
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { token, isAuthenticated } = useAuth();

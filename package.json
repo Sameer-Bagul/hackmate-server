@@ -1,4 +1,9 @@
 {
+  "pnpm": {
+    "overrides": {
+      "zod-to-json-schema": "3.23.5"
+    }
+  },
   "name": "hackmate",
   "private": true,
   "scripts": {

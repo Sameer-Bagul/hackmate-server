@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { Server as SocketIOServer } from 'socket.io';
+import { MessageModel } from '@hackmate/db';
 
 export const setupSocketService = (app: FastifyInstance) => {
     // @ts-ignore - fastify-socket.io types might differ slightly or app.io might need casting
@@ -11,32 +12,69 @@ export const setupSocketService = (app: FastifyInstance) => {
     }
 
     io.on('connection', (socket: any) => {
-        // Auth check logic (simplified, assuming handshake or middleware did it)
-        const userId = socket.decoded?.id || socket.handshake.auth.token || socket.data?.user?.id;
+        let userId: string | null = null;
+
+        try {
+            const token = socket.handshake.auth.token || socket.handshake.headers?.authorization;
+            if (token) {
+                const cleanToken = token.replace('Bearer ', '');
+                const decoded = app.jwt.verify(cleanToken) as { id: string };
+                userId = decoded.id;
+            }
+        } catch (err) {
+            app.log.warn('Socket auth failed: ' + (err as Error).message);
+        }
 
         if (userId) {
             socket.join(userId);
             app.log.info(`User connected: ${userId}`);
+            socket.data.user = { id: userId }; // Store for later
+        } else {
+            app.log.warn('Socket connected without auth');
         }
 
         socket.on('join:group', (groupId: string) => {
+            if (!userId) return; // Guard
             socket.join(`group_${groupId}`);
             app.log.info(`Socket ${userId} joined group_${groupId}`);
         });
 
         socket.on('message', async (data: any) => {
-            // We can handle message logic here or keep it in the API controller via API calls.
-            // But for real-time only events (like typing indicators), this place is good.
-            // Actual message persistence is currently done via API /chat/send or CLI emitting to socket?
+            try {
+                const { to, groupId, content } = data;
 
-            // Wait, the current implementation in `start.ts` was relying on an external event or API?
-            // Actually, `start.ts` had NO message handling logic in the final version I fixed.
-            // The chat features rely on `POST /chat/send` or similar? 
-            // Let me check `apps/api/src/modules/chat/index.ts`.
-            // Ah, `start.ts` DOES NOT HAVE `socket.on('message')` in the fixed version. 
-            // The CLI was emitting 'message', but where was it caught?
-            // It seems I might have missed porting the message handler in the previous `start.ts` fix?
-            // Let's check `start.ts` content again.
+                if (!content) return;
+
+                if (to) {
+                    // Direct Message
+                    const message = await MessageModel.create({
+                        senderId: userId,
+                        receiverId: to,
+                        content: content
+                    });
+
+                    // Populate sender info for the receiver
+                    await message.populate('senderId', 'username');
+
+                    // Emit to receiver
+                    io.to(to).emit('dm:receive', message);
+
+                } else if (groupId) {
+                    // Group Message
+                    const message = await MessageModel.create({
+                        senderId: userId,
+                        groupId: groupId,
+                        content: content
+                    });
+
+                    await message.populate('senderId', 'username');
+
+                    // Emit to group room
+                    io.to(`group_${groupId}`).emit('group:receive', message);
+                }
+            } catch (err) {
+                app.log.error(err, 'Socket message error');
+            }
         });
 
         socket.on('disconnect', () => {

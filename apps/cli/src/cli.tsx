@@ -12,7 +12,7 @@ import { Project } from './commands/project/index.js';
 import { Group } from './commands/group/index.js';
 import { Notification } from './commands/notification/index.js';
 import { ProfileView, ProfileEdit } from './commands/profile/index.js';
-import { Chat } from './commands/chat/index.js';
+import { Chat, ChatList } from './commands/chat/index.js';
 import { Discover } from './commands/Discover.js';
 // import { ComingSoon } from './commands/ComingSoon.js'; // REMOVED
 import { Logout } from './commands/auth/Logout.js';
@@ -59,8 +59,7 @@ const profile = program.command('profile').description('Manage your profile');
 profile.command('view [username]')
     .description('View profile')
     .action((username) => {
-        // TODO: Pass username to ProfileView if it supports it, currently mostly self
-        render(<AppProvider><ProfileView /></AppProvider>);
+        render(<AppProvider><ProfileView username={username} /></AppProvider>);
     });
 
 profile.command('edit')
@@ -122,6 +121,10 @@ chat.command('dm <username>')
 chat.command('group <groupname>')
     .description('Group Chat')
     .action((groupname) => { render(<AppProvider><Chat groupName={groupname} /></AppProvider>); });
+
+chat.command('list')
+    .description('List conversations')
+    .action(() => { render(<AppProvider><ChatList /></AppProvider>); });
 
 // --- PROJECTS (Added from featuresTodo) ---
 const project = program.command('project').description('Project Collaboration');
