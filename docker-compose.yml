@@ -9,6 +9,9 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - MONGO_URI=${MONGO_URI}
-      - REDIS_URI=${REDIS_URI}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
     restart: always
