@@ -9,3 +9,4 @@ apps/*/dist
 packages/*/dist
 npm-debug.log
 pnpm-debug.log
+**/*.tsbuildinfo
