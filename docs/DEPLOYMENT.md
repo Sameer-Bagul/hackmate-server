@@ -1,56 +1,103 @@
-## Azure Deployment
+# Azure Deployment Guide (GitHub Method)
 
-### Recommended: Azure App Service (GitHub / Zip Deploy)
+This guide walks you through deploying **HackMate** to Azure App Service directly from your GitHub repository.
 
-Since this is a Monorepo, you must deploy the **ENTIRE ROOT FOLDER**.
+## Prerequisites
+1.  **GitHub Repository**: Your code must be pushed to a GitHub repository.
+2.  **Azure Account**: You need an active Azure subscription.
+3.  **Database**:
+    - **MongoDB Atlas** (Cloud) connection string.
+    - **Upstash Redis** (Cloud) connection string.
 
-1.  **Push to GitHub** (Recommended):
-    - Connect your Azure Web App to your GitHub Repo within the "Deployment Center".
-    - Choose "App Service Build Service".
+---
 
-2.  **Startup Command (Crucial)**:
-    Azure needs to know how to build and start your app.
-    Go to **Configuration** -> **General Settings** -> **Startup Command**:
+## Step 1: Create Azure App Service
+
+1.  Log in to the **[Azure Portal](https://portal.azure.com)**.
+2.  Search for **"App Services"** and click **Create** -> **Web App**.
+3.  **Basics Tab**:
+    - **Name**: `hackmate-api` (or unique name).
+    - **Publish**: `Code` (NOT Docker).
+    - **Runtime Stack**: `Node.js 20 LTS`.
+    - **Operating System**: `Linux`.
+    - **Region**: Choose one close to you.
+    - **Pricing Plan**: `Basic B1` (Recommended) or `Free F1` (Might be slow/timeout during build).
+4.  Click **Review + create** -> **Create**.
+
+---
+
+## Step 2: Connect GitHub Repository
+
+1.  Go to your newly created **Web App**.
+2.  In the left menu, click **Deployment Center**.
+3.  **Source**: Select **GitHub**.
+4.  **Authorize**: Sign in to your GitHub account if asked.
+5.  **Organization / Repository**: Select `Sameer-Bagul/hackmate`.
+6.  **Branch**: Select `main`.
+7.  **Build Provider**:
+    - Choose **"App Service Build Service"** (Simplest, no YAML needed).
+    - *Note: If that option is missing, choose "GitHub Actions" and Azure will create a workflow file for you.*
+8.  Click **Save**.
+
+Azure will now pull your code and try to deploy. **It will fail initially** because we haven't set the startup command yet. That is normal.
+
+---
+
+## Step 3: Configure Startup Command (Crucial)
+
+Since this is a Monorepo, we need a custom command to install dependencies, build the project, and start the API.
+
+1.  In the Web App menu, go to **Configuration** (or **Settings** -> **Configuration**).
+2.  Click on the **General Settings** tab.
+3.  In the **Startup Command** field, paste exactly this:
+
     ```bash
     npm install -g pnpm && pnpm install && pnpm build && node apps/api/dist/start.js
     ```
 
-3.  **Environment Variables**:
-    - Go to **Configuration** -> **Application Settings**.
-    - Add `MONGO_URI`, `REDIS_URI`, `JWT_SECRET`, etc.
+4.  Click **Save**.
 
-If you cannot use Docker, you can deploy the code directly.
+---
 
-**Which folder to deploy?**
-You must deploy the **ENTIRE ROOT FOLDER**.
-Because this is a monorepo, `apps/api` depends on `packages/shared` and `packages/db`. You cannot deploy just the `api` folder.
+## Step 4: Set Environment Variables
 
-1.  **Prepare zip**:
-    Zip the entire project (excluding `node_modules`, `.git`).
-    ```bash
-    zip -r hackmate.zip . -x "node_modules/*" -x ".git/*" -x "dist/*"
-    ```
+Your app needs to connect to the database.
 
-2.  **Deploy**:
-    - Create Web App (Publish: Code, Runtime: Node 20).
-    - Deploy via Zip Deploy (Kudu) or VS Code Azure Extension.
+1.  Still in **Configuration**, go to the **Environment variables** (or **Application Settings**) tab.
+2.  Click **+ Add** (or **New application setting**) for each of the following:
 
-3.  **Startup Command**:
-    Set the Startup Command in Azure Configuration:
-    ```bash
-    npm install -g pnpm && pnpm install && pnpm build && node apps/api/dist/start.js
-    ```
-    *(Note: This might be slow on standard tiers due to build time. Pre-building locally and using `node_modules` matching the target OS is harder without Docker)*.
+    | Name | Value (Example) |
+    | :--- | :--- |
+    | `NODE_ENV` | `production` |
+    | `PORT` | `3001` |
+    | `MONGO_URI` | `mongodb+srv://...` (Your Atlas URL) |
+    | `REDIS_URI` | `redis://...` (Your Upstash URL) |
+    | `JWT_SECRET` | `your-super-long-secret-key` |
+    | `SMTP_HOST` | `smtp.gmail.com` (Optional) |
+    | `SMTP_USER` | `your@email.com` (Optional) |
+    | `SMTP_PASS` | `your-app-password` (Optional) |
 
-### Option 3: Azure VM (Manual VPS)
-1.  Provision Ubuntu VM.
-2.  Install Node.js 20, MongoDB, Redis.
-3.  Clone repo.
-4.  Run:
-    ```bash
-    npm install -g pnpm
-    pnpm install
-    pnpm build
-    pm2 start apps/api/dist/start.js --name hackmate-api
-    ```
+3.  Click **Apply** / **Save**.
+4.  **Restart** the Web App (Overview -> Restart).
 
+---
+
+## Step 5: Verification
+
+1.  Wait 5-10 minutes for the deployment to finish.
+2.  Go to **Deployment Center** -> **Logs** to see progress.
+3.  Visit your app URL: `https://hackmate-api.azurewebsites.net/health`
+    - You should see: `{"status":"ok", ...}`
+
+---
+
+## Troubleshooting
+
+- **Deployment Failed / Build Error**:
+    - Check **Deployment Center** logs.
+    - Ensure your `package.json` scripts are correct (we verified they are).
+    - If using Free Tier (F1), build might timeout. Use Basic (B1) or build locally and use Zip Deploy.
+
+- **App Application Error :(`**:
+    - Go to **Log Stream** in the left menu.
+    - Look for errors like `MONGO_URI not defined` (Step 4 missed) or `Module not found` (Build failed).
