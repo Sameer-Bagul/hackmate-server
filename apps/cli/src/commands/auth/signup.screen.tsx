@@ -9,8 +9,8 @@ interface SignupScreenProps {
     setEmail: (v: string) => void;
     password: string;
     setPassword: (v: string) => void;
-    step: 'username' | 'email' | 'password' | 'otp';
-    setStep: (v: 'username' | 'email' | 'password' | 'otp') => void;
+    step: 'username' | 'email' | 'password' | 'otp' | 'profile_setup';
+    setStep: (v: 'username' | 'email' | 'password' | 'otp' | 'profile_setup') => void;
     error: string | null;
     loading: boolean;
     handleSubmit: () => void;

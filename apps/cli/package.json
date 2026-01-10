@@ -2,6 +2,7 @@
     "name": "hackmate-cli",
     "version": "0.0.0",
     "private": true,
+    "type": "module",
     "bin": {
         "hackmate": "./dist/cli.js"
     },

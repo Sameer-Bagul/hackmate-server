@@ -32,7 +32,7 @@ export const Verify = () => {
         );
     }
 
-    if (step === 'input') {
+    if (step === 'enter_code') {
         return (
             <Box borderStyle="round" borderColor="yellow" flexDirection="column" padding={1}>
                 <Text>📩 OTP sent! Check your console/email.</Text>

@@ -106,18 +106,17 @@ social.command('block <username>')
     .action((username) => { render(<AppProvider><Network action="block" target={username} /></AppProvider>); });
 
 // --- CHAT ---
-const chat = program.command('chat').description('Messaging');
-
-chat.command('dm <username>')
-    .description('Direct Message')
-    .action((username) => { render(<AppProvider><Chat targetUsername={username} /></AppProvider>); });
-
-// Alias for root chat command "hackmate chat @user"
-program.command('chat [username]', { hidden: true })
+const chat = program.command('chat')
+    .description('Messaging')
+    .argument('[username]', 'Direct Message user')
     .action((username) => {
         if (username) render(<AppProvider><Chat targetUsername={username} /></AppProvider>);
         else render(<AppProvider><Chat /></AppProvider>);
     });
+
+chat.command('dm <username>')
+    .description('Direct Message')
+    .action((username) => { render(<AppProvider><Chat targetUsername={username} /></AppProvider>); });
 
 
 chat.command('group <groupname>')
@@ -179,13 +178,15 @@ notification.command('list')
 // --- ADMIN ---
 const admin = program.command('admin').description('God Mode');
 
-admin.command('users list')
+const users = admin.command('users').description('User Management');
+
+users.command('list')
     .action(() => { render(<AppProvider><Admin action="list" /></AppProvider>); });
 
-admin.command('users view <id>')
+users.command('view <id>')
     .action((id) => { render(<AppProvider><Admin action="view" id={id} /></AppProvider>); });
 
-admin.command('users delete <id>')
+users.command('delete <id>')
     .action((id) => { render(<AppProvider><Admin action="delete" id={id} /></AppProvider>); });
 
 

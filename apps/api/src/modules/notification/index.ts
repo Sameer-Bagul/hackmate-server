@@ -1,12 +1,14 @@
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { NotificationModel } from '@hackmate/db';
 
 const notificationRoutes: FastifyPluginAsync = async (fastify) => {
-    fastify.addHook('onRequest', fastify.authenticate);
+    const app = fastify.withTypeProvider<ZodTypeProvider>();
+    app.addHook('onRequest', fastify.authenticate);
 
     // LIST Notifications
-    fastify.get('/', async (request, reply) => {
+    app.get('/', async (request, reply) => {
         // @ts-ignore
         const currentUserId = request.user.id;
 
@@ -18,7 +20,7 @@ const notificationRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // MARK AS READ
-    fastify.post('/:id/read', {
+    app.post('/:id/read', {
         schema: {
             params: z.object({ id: z.string() })
         }

@@ -54,7 +54,28 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
         user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
         await user.save();
 
-        console.log(`📧 [MOCK EMAIL] To: ${user.email} | OTP: ${otp}`);
+        if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+            const nodemailer = await import('nodemailer');
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS,
+                },
+            });
+
+            await transporter.sendMail({
+                from: `"HackMate" <${process.env.SMTP_USER}>`,
+                to: user.email,
+                subject: 'Your HackMate Verification Code',
+                text: `Your OTP code is: ${otp}. It expires in 10 minutes.`,
+                html: `<b>Your OTP code is: ${otp}</b><br>It expires in 10 minutes.`,
+            });
+            fastify.log.info(`📧 Email sent to ${user.email}`);
+        } else {
+            fastify.log.warn('SMTP credentials missing, falling back to console log');
+            console.log(`📧 [MOCK EMAIL] To: ${user.email} | OTP: ${otp}`);
+        }
 
         return { message: 'OTP sent' };
     });

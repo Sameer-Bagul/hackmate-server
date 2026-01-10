@@ -44,7 +44,7 @@ export const useSignupLogic = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [otp, setOtp] = useState('');
-    const [step, setStep] = useState<'username' | 'email' | 'password' | 'otp'>('username');
+    const [step, setStep] = useState<'username' | 'email' | 'password' | 'otp' | 'profile_setup'>('username');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<string>('');
@@ -61,7 +61,8 @@ export const useSignupLogic = () => {
 
             // 2. Send OTP automatically
             setStatus('Account created! Sending verification OTP...');
-            await api.post('/auth/otp/send');
+            // Fix: Send empty body to ensure JSON content-type
+            await api.post('/auth/otp/send', {});
 
             setLoading(false);
             setStep('otp');
@@ -84,8 +85,9 @@ export const useSignupLogic = () => {
         setError(null);
         try {
             await api.post('/auth/otp/verify', { code: otp });
-            console.log('✅ Signup & Verification successful! Welcome to HackMate.');
-            exit();
+            console.log('✅ Signup & Verification successful! Setting up profile...');
+            // Transition to profile setup instead of exiting
+            setStep('profile_setup');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Invalid OTP');
             setLoading(false);

@@ -1,11 +1,14 @@
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { UserModel, ProfileModel } from '@hackmate/db';
 
 const adminRoutes: FastifyPluginAsync = async (fastify) => {
+    const app = fastify.withTypeProvider<ZodTypeProvider>();
+
     // Middleware to ensure user is admin
-    fastify.addHook('onRequest', fastify.authenticate);
-    fastify.addHook('onRequest', async (request, reply) => {
+    app.addHook('onRequest', fastify.authenticate);
+    app.addHook('onRequest', async (request, reply) => {
         const user = request.user as { role: string; id: string };
         if (user.role !== 'admin') {
             return reply.code(403).send({ message: 'Forbidden: Admins only' });
@@ -13,13 +16,13 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // LIST all users
-    fastify.get('/users', async (request, reply) => {
+    app.get('/users', async (request, reply) => {
         const users = await UserModel.find({}, '-passwordHash');
         return users;
     });
 
     // VIEW a user
-    fastify.get('/users/:id', {
+    app.get('/users/:id', {
         schema: {
             params: z.object({ id: z.string() })
         }
@@ -33,7 +36,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // DELETE a user
-    fastify.delete('/users/:id', {
+    app.delete('/users/:id', {
         schema: {
             params: z.object({ id: z.string() })
         }
@@ -56,7 +59,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // UPDATE a user (e.g. promote to admin)
-    fastify.put('/users/:id', {
+    app.put('/users/:id', {
         schema: {
             params: z.object({ id: z.string() }),
             body: z.object({
