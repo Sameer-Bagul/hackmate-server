@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
-import api from '../../api.js';
-import { useAuth } from '../../context/index.js';
+import api from '../../../api.js';
+import { useAuth } from '../../../context/index.js';
 
 interface UseProjectLogicProps {
     action?: 'list' | 'create' | 'view' | 'apply' | 'accept';

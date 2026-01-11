@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNetworkLogic } from './network.logic.js';
+import { useNetworkLogic } from '../hooks/useNetwork.js';
 import { NetworkScreen } from './network.screen.js';
 
 interface NetworkProps {

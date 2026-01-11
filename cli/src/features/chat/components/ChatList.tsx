@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
-import api from '../../api.js';
+import api from '../../../api.js';
 
 interface Conversation {
     user: {
@@ -13,7 +13,7 @@ interface Conversation {
     };
 }
 
-import { useChatLogic } from './chat.logic.js';
+import { useChatLogic } from '../hooks/useChat.js';
 import { ChatScreen } from './chat.screen.js';
 
 export const ChatList = () => {

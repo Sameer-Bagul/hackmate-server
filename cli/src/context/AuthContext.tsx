@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { saveToken, saveUser, getToken, getUser, logout as configLogout } from '../config.js';
 
-interface User {
+export interface User {
     username: string;
     id: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
     user: User | null;
     token: string | null;
     isAuthenticated: boolean;

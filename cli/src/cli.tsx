@@ -6,13 +6,13 @@ import { AppProvider } from './context/index.js';
 
 // Commands
 import { Login, Signup } from './commands/auth/index.js';
-import { Admin } from './commands/admin/index.js';
-import { Network } from './commands/network/index.js'; // Mapping to Social/Match
-import { Project } from './commands/project/index.js';
-import { Group } from './commands/group/index.js';
-import { Notification } from './commands/notification/index.js';
-import { ProfileView, ProfileEdit } from './commands/profile/index.js';
-import { Chat, ChatList } from './commands/chat/index.js';
+import { Admin } from './features/admin/index.js';
+import { Network } from './features/network/index.js';
+import { Project } from './features/project/index.js';
+import { Group } from './features/group/index.js';
+import { Notification } from './features/notification/index.js';
+import { ProfileView, ProfileEdit } from './features/profile/index.js';
+import { Chat, ChatList } from './features/chat/index.js';
 import { Discover } from './commands/Discover.js';
 // import { ComingSoon } from './commands/ComingSoon.js'; // REMOVED
 import { Logout } from './commands/auth/Logout.js';

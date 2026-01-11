@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
-import api from '../../api.js';
-import { getUser } from '../../config.js';
+import api from '../../../api.js';
+import { useAuth } from '../../../context/index.js';
 
 export const useProfileViewLogic = (targetUsername?: string) => {
     const { exit } = useApp();
+    const { user } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const user = getUser();
 
     useEffect(() => {
         const fetchProfile = async () => {

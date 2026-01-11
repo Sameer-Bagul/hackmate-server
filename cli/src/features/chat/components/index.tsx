@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChatLogic } from './chat.logic.js';
+import { useChatLogic } from '../hooks/useChat.js';
 import { ChatScreen } from './chat.screen.js';
 
 interface ChatProps {

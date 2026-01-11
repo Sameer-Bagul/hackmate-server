@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNotificationLogic } from './notification.logic.js';
+import { useNotificationLogic } from '../hooks/useNotification.js';
 import { NotificationScreen } from './notification.screen.js';
 
 interface NotificationProps {

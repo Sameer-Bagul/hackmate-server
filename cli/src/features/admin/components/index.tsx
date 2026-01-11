@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAdminLogic } from './admin.logic.js';
+import { useAdminLogic } from '../hooks/useAdmin.js';
 import { AdminScreen } from './admin.screen.js';
 
 interface AdminProps {

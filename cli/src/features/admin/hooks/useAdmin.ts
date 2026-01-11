@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
-import api from '../../api.js';
+import api from '../../../api.js';
 
 interface UseAdminLogicProps {
     action: 'list' | 'view' | 'delete';

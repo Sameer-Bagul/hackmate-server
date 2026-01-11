@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGroupLogic } from './group.logic.js';
+import { useGroupLogic } from '../hooks/useGroup.js';
 import { GroupScreen } from './group.screen.js';
 
 interface GroupProps {

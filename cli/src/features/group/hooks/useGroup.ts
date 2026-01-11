@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from 'ink';
-import api from '../../api.js';
-import { useAuth } from '../../context/index.js';
+import api from '../../../api.js';
+import { useAuth } from '../../../context/index.js';
 
 interface UseGroupLogicProps {
     action?: 'list' | 'create' | 'view' | 'join' | 'accept';

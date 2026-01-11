@@ -1,5 +1,5 @@
 import React from 'react';
-import { useProjectLogic } from './project.logic.js';
+import { useProjectLogic } from '../hooks/useProject.js';
 import { ProjectScreen } from './project.screen.js';
 
 interface ProjectProps {
