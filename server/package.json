@@ -10,7 +10,8 @@
         "start": "node dist/start.js",
         "lint": "eslint src/**/*.ts",
         "test": "node --test",
-        "seed:admin": "tsx scripts/seed-admin.ts"
+        "seed:admin": "tsx scripts/seed-admin.ts",
+        "seed:profiles": "tsx scripts/seed-profiles.ts"
     },
     "keywords": [
         "hackmate",
@@ -32,6 +33,7 @@
         "@types/nodemailer": "^7.0.4",
         "@upstash/redis": "^1.36.1",
         "argon2": "^0.44.0",
+        "axios": "^1.13.2",
         "dotenv": "^16.0.0",
         "fastify": "^4.28.0",
         "fastify-plugin": "^4.5.0",

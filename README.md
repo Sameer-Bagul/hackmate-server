@@ -1,17 +1,29 @@
-# HackMate 🚀
+# HackMate 🚀💕
 
-A CLI-first social network designed for developers and hackers. Connect, collaborate, and build—all from your terminal.
+A CLI-first social network and dating platform designed for developers. Connect, collaborate, code—and maybe find love—all from your terminal.
 
 ## 🎯 What is HackMate?
 
 HackMate is a terminal-based social platform where developers can:
-- **Connect** with like-minded hackers based on tech stack and interests
-- **Chat** in real-time via DMs and group channels
-- **Collaborate** on projects and find team members
-- **Join** developer communities and groups
-- **Network** through friend requests and following
+- 💘 **Date** other developers with GitHub-powered matching
+- 🤝 **Connect** with like-minded hackers based on tech stack and interests
+- 💬 **Chat** in real-time via DMs and group channels
+- 🚀 **Collaborate** on projects and find team members
+- 👥 **Join** developer communities and groups
+- 🌐 **Network** through friend requests and following
 
-Think of it as "LinkedIn + Discord for terminal lovers."
+Think of it as "Tinder + LinkedIn + Discord for terminal lovers."
+
+### 🌟 Unique Dating Features
+
+HackMate isn't just another dating app - it matches you based on:
+- **GitHub Compatibility**: Shared programming languages, repos, and coding activity
+- **Tech Stack**: Find people who work with the same technologies
+- **Hobbies & Interests**: Connect over shared passions beyond coding
+- **Location**: Discover developers in your city or country
+- **Traditional Preferences**: Age range, orientation, and relationship goals
+
+[Learn more about dating features →](docs/DATING_FEATURES.md)
 
 ## 📦 Project Structure
 
@@ -57,8 +69,44 @@ hackmate chat
 hackmate discover
 ```
 
+## � Dating Quick Example
+
+### Create a dating profile:
+```bash
+POST /api/auth/signup
+{
+  "username": "devlover",
+  "email": "dev@example.com",
+  "password": "secure123",
+  "intent": "dating",
+  "age": 28,
+  "gender": "female",
+  "city": "San Francisco",
+  "lookingFor": "relationship",
+  "orientation": "straight",
+  "interestedIn": ["male"],
+  "ageRangeMin": 25,
+  "ageRangeMax": 35,
+  "stack": ["React", "Node.js", "Python"],
+  "hobbies": ["hiking", "photography", "cooking"],
+  "github": "devlover123"
+}
+```
+
+### Discover matches:
+```bash
+GET /api/match/discover
+# Returns top compatible developers with scores and match reasons
+
+GET /api/match/top?city=San Francisco&minScore=60
+# Filter by location and compatibility threshold
+```
+
+**[See full dating guide →](docs/DATING_FEATURES.md)**
+
 ## 📚 Documentation
 
+- **[Dating Features](docs/DATING_FEATURES.md)** - Complete dating guide, matching algorithm
 - **[Server Documentation](server/README.md)** - API setup, endpoints, deployment
 - **[CLI Documentation](cli/README.md)** - Installation, commands, usage
 - **[User Manual](docs/HACKMATE_MANUAL.md)** - Complete feature guide
@@ -66,10 +114,18 @@ hackmate discover
 
 ## ✨ Key Features
 
+### 💘 Dating & Matching
+- GitHub-powered compatibility scoring (100-point algorithm)
+- Match on tech stack, hobbies, location, age, and preferences
+- Filter by city, age range, orientation, and relationship goals
+- Detailed match reasons (shared languages, skills, interests)
+- Sync GitHub profile for automatic analysis
+
 ### Authentication & Profiles
 - Email-based signup with OTP verification
 - JWT authentication
-- Customizable profiles (bio, skills, tech stack, socials)
+- Comprehensive profiles (dating preferences, hobbies, tech stack, socials)
+- Age, gender, orientation, and preference settings
 
 ### Real-time Chat
 - Direct messaging via Socket.IO

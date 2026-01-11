@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { UserModel } from '../../models/index.js';
+import { UserModel, ProfileModel } from '../../models/index.js';
 import argon2 from 'argon2';
 
 import { SignupSchema, LoginSchema } from '../../schemas/index.js';
@@ -21,6 +21,42 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             email: body.email,
             passwordHash,
         });
+
+        // Create profile with all provided data
+        const profileData = {
+            userId: user._id,
+            fullName: body.fullName,
+            bio: body.bio,
+            intent: body.intent || 'collab',
+            stack: body.stack || [],
+            location: body.location,
+            city: body.city,
+            country: body.country,
+            age: body.age,
+            dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
+            gender: body.gender,
+            lookingFor: body.lookingFor,
+            orientation: body.orientation,
+            interestedIn: body.interestedIn,
+            ageRangeMin: body.ageRangeMin,
+            ageRangeMax: body.ageRangeMax,
+            hobbies: body.hobbies,
+            interests: body.interests,
+            company: body.company,
+            jobTitle: body.jobTitle,
+            yearsOfExperience: body.yearsOfExperience,
+            github: body.github,
+            linkedin: body.linkedin,
+            twitter: body.twitter,
+            website: body.website,
+        };
+
+        // Remove undefined fields
+        Object.keys(profileData).forEach(key => 
+            profileData[key as keyof typeof profileData] === undefined && delete profileData[key as keyof typeof profileData]
+        );
+
+        await ProfileModel.create(profileData);
 
         const token = fastify.jwt.sign({ id: user._id, username: user.username, role: user.role });
         return { token, user: { id: user._id, username: user.username, email: user.email, role: user.role } };
