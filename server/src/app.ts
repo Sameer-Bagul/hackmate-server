@@ -37,6 +37,7 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
     await app.register(autoload, {
         dir: path.join(__dirname, 'infrastructure/socket'),
         options: opts,
+        ignorePattern: /socket\.service/
     });
 
     // Register all API Routes (auth, match, profile, chat, group, network, project, notification, admin)

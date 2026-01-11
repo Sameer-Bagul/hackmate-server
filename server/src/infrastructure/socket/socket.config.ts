@@ -2,7 +2,7 @@ import fp from 'fastify-plugin';
 import io from 'fastify-socket.io';
 import { ServerOptions } from 'socket.io';
 import { FastifyInstance } from 'fastify';
-import { MessageModel } from '../../models/index.js';
+import { MessageModel } from '../database/models/index.js';
 
 // Extend FastifyInstance to include io
 declare module 'fastify' {

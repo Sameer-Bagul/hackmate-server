@@ -9,6 +9,7 @@
     "scripts": {
         "build": "tsc",
         "dev": "tsx watch src/cli.tsx",
+        "test": "tsx src/cli.tsx",
         "start": "node dist/cli.js",
         "lint": "eslint src/**/*.ts"
     },
