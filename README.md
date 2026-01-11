@@ -1,254 +1,182 @@
-# HackMate 🚀💕
+# HackMate Server 🚀
 
-A CLI-first social network and dating platform designed for developers. Connect, collaborate, code—and maybe find love—all from your terminal.
+Backend API server for HackMate - A terminal-based social network for developers and hackers.
 
-## 🎯 What is HackMate?
+## Tech Stack
 
-HackMate is a terminal-based social platform where developers can:
-- 💘 **Date** other developers with GitHub-powered matching
-- 🤝 **Connect** with like-minded hackers based on tech stack and interests
-- 💬 **Chat** in real-time via DMs and group channels
-- 🚀 **Collaborate** on projects and find team members
-- 👥 **Join** developer communities and groups
-- 🌐 **Network** through friend requests and following
+- **Framework**: Fastify (Node.js)
+- **Database**: MongoDB (with Mongoose ODM)
+- **Cache/Sessions**: Redis (Upstash)
+- **Real-time**: Socket.IO
+- **Authentication**: JWT + Argon2
+- **Validation**: Zod schemas
 
-Think of it as "Tinder + LinkedIn + Discord for terminal lovers."
+## Features
 
-### 🌟 Unique Dating Features
+- 🔐 **Authentication** - Signup, Login, Email verification (OTP)
+- 👤 **User Profiles** - Skills, tech stack, bio, socials
+- 💬 **Real-time Chat** - Direct messages and group chats
+- 🌐 **Social Network** - Friend requests, following, blocking
+- 🛠️ **Projects** - Post projects, find collaborators
+- 👥 **Groups** - Create and join communities
+- 🔔 **Notifications** - Real-time updates
+- ⚡ **Admin Panel** - User management
 
-HackMate isn't just another dating app - it matches you based on:
-- **GitHub Compatibility**: Shared programming languages, repos, and coding activity
-- **Tech Stack**: Find people who work with the same technologies
-- **Hobbies & Interests**: Connect over shared passions beyond coding
-- **Location**: Discover developers in your city or country
-- **Traditional Preferences**: Age range, orientation, and relationship goals
+## Prerequisites
 
-[Learn more about dating features →](docs/DATING_FEATURES.md)
+- Node.js >= 20
+- MongoDB (local or Atlas)
+- Redis (local or Upstash)
+- SMTP credentials (for email verification)
 
-## 📦 Project Structure
+## Installation
 
-This repository contains two standalone applications:
+1. **Install dependencies**:
+   ```bash
+   npm install
+   # or
+   pnpm install
+   ```
 
-```
-hackmate/
-├── server/           # Fastify API + Socket.IO backend
-└── cli/              # Interactive terminal client (React + Ink)
-```
+2. **Configure environment variables**:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` with your configuration:
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/hackmate
+   UPSTASH_REDIS_URL=redis://localhost:6379
+   JWT_SECRET=your-secret-key
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASS=your-app-password
+   PORT=3001
+   ```
 
-Each directory is a **complete, independent application** with its own:
-- `package.json` - Dependencies and scripts
-- `tsconfig.json` - TypeScript configuration
-- `README.md` - Detailed documentation
-- `.env.example` - Environment configuration template
+3. **Build the project**:
+   ```bash
+   npm run build
+   ```
 
-## 🚀 Quick Start
+## Usage
 
-### 1. Start the Server
-
+### Development Mode
 ```bash
-cd server
-npm install
-cp .env.example .env
-# Edit .env with your MongoDB, Redis, and SMTP credentials
 npm run dev
 ```
+Server runs on `http://localhost:3001` with hot reload.
 
-Server runs on `http://localhost:3001`
-
-### 2. Install & Run CLI
-
+### Production Mode
 ```bash
-cd cli
-npm install
 npm run build
-npm link
-
-# Now use the CLI
-hackmate auth signup
-hackmate chat
-hackmate discover
+npm start
 ```
 
-## � Dating Quick Example
-
-### Create a dating profile:
+### Seed Admin User
 ```bash
-POST /api/auth/signup
-{
-  "username": "devlover",
-  "email": "dev@example.com",
-  "password": "secure123",
-  "intent": "dating",
-  "age": 28,
-  "gender": "female",
-  "city": "San Francisco",
-  "lookingFor": "relationship",
-  "orientation": "straight",
-  "interestedIn": ["male"],
-  "ageRangeMin": 25,
-  "ageRangeMax": 35,
-  "stack": ["React", "Node.js", "Python"],
-  "hobbies": ["hiking", "photography", "cooking"],
-  "github": "devlover123"
-}
+npm run seed:admin
 ```
 
-### Discover matches:
-```bash
-GET /api/match/discover
-# Returns top compatible developers with scores and match reasons
+## Project Structure
 
-GET /api/match/top?city=San Francisco&minScore=60
-# Filter by location and compatibility threshold
+```
+server/
+├── src/
+│   ├── models/           # Mongoose models
+│   │   ├── User.ts
+│   │   ├── Profile.ts
+│   │   ├── Message.ts
+│   │   ├── Group.ts
+│   │   └── ...
+│   ├── schemas/          # Zod validation schemas
+│   │   ├── auth.ts
+│   │   ├── profile.ts
+│   │   └── ...
+│   ├── modules/          # Feature modules
+│   │   ├── auth/
+│   │   ├── profile/
+│   │   ├── chat/
+│   │   ├── network/
+│   │   ├── project/
+│   │   ├── group/
+│   │   └── admin/
+│   ├── plugins/          # Fastify plugins
+│   │   ├── infra/        # MongoDB, Redis, Socket.IO
+│   │   └── security/     # JWT, CORS, Rate limiting
+│   ├── services/         # Shared services
+│   ├── types/            # TypeScript types
+│   ├── app.ts            # Fastify app setup
+│   └── start.ts          # Server entry point
+├── scripts/              # Utility scripts
+├── package.json
+├── tsconfig.json
+├── Dockerfile
+└── .env.example
 ```
 
-**[See full dating guide →](docs/DATING_FEATURES.md)**
+## API Endpoints
 
-## 📚 Documentation
+### Authentication
+- `POST /auth/signup` - Register new user
+- `POST /auth/login` - Login
+- `POST /auth/otp/send` - Send verification OTP
+- `POST /auth/otp/verify` - Verify OTP
 
-- **[Dating Features](docs/DATING_FEATURES.md)** - Complete dating guide, matching algorithm
-- **[Server Documentation](server/README.md)** - API setup, endpoints, deployment
-- **[CLI Documentation](cli/README.md)** - Installation, commands, usage
-- **[User Manual](docs/HACKMATE_MANUAL.md)** - Complete feature guide
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
+### Profile
+- `GET /profile` - Get own profile
+- `PUT /profile` - Update profile
+- `GET /profile/:username` - View user profile
 
-## ✨ Key Features
+### Chat
+- `GET /chat/dm/:userId` - Get DM history
+- `GET /chat/group/:groupId` - Get group messages
+- `GET /chat/conversations` - List all conversations
 
-### 💘 Dating & Matching
-- GitHub-powered compatibility scoring (100-point algorithm)
-- Match on tech stack, hobbies, location, age, and preferences
-- Filter by city, age range, orientation, and relationship goals
-- Detailed match reasons (shared languages, skills, interests)
-- Sync GitHub profile for automatic analysis
+### Network
+- `POST /network/follow` - Send friend request
+- `GET /network/requests` - List pending requests
+- `POST /network/requests/:id/accept` - Accept request
+- `GET /network/friends` - List friends
 
-### Authentication & Profiles
-- Email-based signup with OTP verification
-- JWT authentication
-- Comprehensive profiles (dating preferences, hobbies, tech stack, socials)
-- Age, gender, orientation, and preference settings
+### Projects
+- `GET /project` - List open projects
+- `POST /project` - Create project
+- `POST /project/:id/apply` - Apply to project
+- `POST /project/:id/accept/:userId` - Accept applicant
 
-### Real-time Chat
-- Direct messaging via Socket.IO
-- Group chat channels
-- Online presence indicators
-- Message history
+### Groups
+- `GET /group` - List groups
+- `POST /group` - Create group
+- `POST /group/:id/join` - Join group
 
-### Social Networking
-- Friend requests and following
-- User discovery based on matching tech stacks
-- Block/unblock users
-- Friend lists
+### Admin
+- `GET /admin/users` - List all users
+- `DELETE /admin/users/:id` - Delete user
+- `PUT /admin/users/:id` - Update user role
 
-### Projects & Collaboration
-- Post project ideas
-- Browse open projects
-- Apply to join teams
-- Accept/reject applicants
-
-### Communities
-- Create and join groups
-- Group messaging
-- Interest-based communities
-
-### Admin Tools
-- User management
-- Ban/delete users
-- Promote to admin
-
-## 🛠️ Tech Stack
-
-### Server
-- **Fastify** - Fast, low-overhead Node.js framework
-- **MongoDB** - Document database with Mongoose ODM
-- **Redis** - Caching and session management
-- **Socket.IO** - Real-time WebSocket communication
-- **Zod** - Runtime type validation
-- **Argon2** - Password hashing
-- **JWT** - Token-based authentication
-
-### CLI
-- **React + Ink** - Build terminal UIs with React
-- **Commander** - CLI framework
-- **Axios** - HTTP client
-- **Socket.IO Client** - Real-time connection
-- **Chalk** - Terminal colors
-- **Conf** - Config management
-
-## 📖 Common Commands
+## Docker Deployment
 
 ```bash
-# Authentication
-hackmate auth signup         # Create account
-hackmate auth login          # Login
-hackmate auth logout         # Logout
-
-# Networking
-hackmate discover            # Find developers
-hackmate social follow <user> # Send friend request
-
-# Chat
-hackmate chat                # Open chat interface
-hackmate chat dm <user>      # Direct message
-
-# Projects
-hackmate project list        # Browse projects
-hackmate project create      # Post a project
-
-# Groups
-hackmate group list          # List communities
-hackmate group join <id>     # Join a group
-
-# Admin
-hackmate admin users list    # List all users (admin only)
-```
-
-## 🔧 Development
-
-### Server Development
-```bash
-cd server
-npm install
-npm run dev    # Runs with tsx watch mode
-```
-
-### CLI Development
-```bash
-cd cli
-npm install
-npm run dev    # Runs with tsx watch mode
-```
-
-## 🐳 Docker Deployment
-
-```bash
-cd server
+# Build and run with Docker Compose
 docker-compose up -d
+
+# Or build manually
+docker build -t hackmate-server .
+docker run -p 3001:3001 --env-file .env hackmate-server
 ```
 
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for production setup.
+## Environment Variables
 
-## 📋 Requirements
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/hackmate` |
+| `UPSTASH_REDIS_URL` | Redis URL | `redis://localhost:6379` |
+| `JWT_SECRET` | JWT signing key | *(required)* |
+| `SMTP_USER` | Email for sending OTPs | *(optional)* |
+| `SMTP_PASS` | Email password/app password | *(optional)* |
+| `PORT` | Server port | `3001` |
+| `NODE_ENV` | Environment mode | `development` |
 
-- **Node.js** >= 20
-- **MongoDB** (local or Atlas)
-- **Redis** (local or Upstash)
-- **SMTP Server** (optional, for email verification)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 📄 License
+## License
 
 MIT
-
-## 🙏 Acknowledgments
-
-Built with love for the terminal-dwelling developer community.
-
----
-
-**Ready to connect?** Start with `hackmate auth signup` and join the network!
