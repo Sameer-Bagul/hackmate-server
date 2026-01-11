@@ -7,7 +7,7 @@ import { analyzeGitHubData } from '../../services/githubService.js';
 const match: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     fastify.addHook('onRequest', fastify.authenticate);
 
-    // GET /match/discover - Find compatible developers
+    // GET /match/discover - Find compatible developers with same intent
     fastify.get('/discover', async (request, reply) => {
         // @ts-ignore
         const userId = request.user.id;
@@ -17,8 +17,11 @@ const match: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             return reply.code(400).send({ message: 'Create your profile first' });
         }
 
-        // Fetch all other profiles
-        const candidates = await ProfileModel.find({ userId: { $ne: userId } }).populate('userId', 'username email');
+        // Fetch profiles with same intent only
+        const candidates = await ProfileModel.find({ 
+            userId: { $ne: userId },
+            intent: myProfile.intent  // Filter by matching intent
+        }).populate('userId', 'username email');
 
         const results = candidates.map(candidate => calculateMatchScore(myProfile, candidate));
 
@@ -28,15 +31,16 @@ const match: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
         return results;
     });
 
-    // GET /match/top?limit=10&city=...&country=...&minScore=50
+    // GET /match/top?limit=10&city=...&country=...&minScore=50&intent=...
     fastify.get('/top', async (request, reply) => {
         // @ts-ignore
         const userId = request.user.id;
-        const { limit = 10, city, country, minScore = 0 } = request.query as { 
+        const { limit = 10, city, country, minScore = 0, intent } = request.query as { 
             limit?: number; 
             city?: string; 
             country?: string;
             minScore?: number;
+            intent?: string;
         };
 
         const myProfile = await ProfileModel.findOne({ userId });
@@ -44,8 +48,11 @@ const match: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             return reply.code(400).send({ message: 'Create your profile first' });
         }
 
-        // Build filter query
-        const filter: any = { userId: { $ne: userId } };
+        // Build filter query - default to same intent unless specified
+        const filter: any = { 
+            userId: { $ne: userId },
+            intent: intent || myProfile.intent  // Filter by intent (default to user's intent)
+        };
         
         if (city) {
             filter.location = new RegExp(city, 'i');
