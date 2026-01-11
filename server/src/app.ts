@@ -26,10 +26,16 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
     await app.register(autoload, {
         dir: path.join(__dirname, 'infrastructure/database'),
         options: opts,
+        ignorePattern: /models/
     });
     
     await app.register(autoload, {
         dir: path.join(__dirname, 'infrastructure/cache'),
+        options: opts,
+    });
+
+    await app.register(autoload, {
+        dir: path.join(__dirname, 'infrastructure/socket'),
         options: opts,
     });
 
