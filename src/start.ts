@@ -4,17 +4,21 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const start = async () => {
+    const isProd = process.env.NODE_ENV === 'production';
+    
     const app = await buildApp({
-        logger: {
-            level: process.env.LOG_LEVEL || 'info',
-            transport: {
-                target: 'pino-pretty'
+        logger: isProd 
+            ? { level: process.env.LOG_LEVEL || 'info' }
+            : {
+                level: process.env.LOG_LEVEL || 'info',
+                transport: {
+                    target: 'pino-pretty'
+                }
             }
-        }
     });
 
     try {
-        const port = parseInt(process.env.PORT || '3000', 10);
+        const port = parseInt(process.env.PORT || '3001', 10);
         const host = process.env.HOST || '0.0.0.0';
 
         await app.listen({ port, host });
