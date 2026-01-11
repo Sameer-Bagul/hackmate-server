@@ -38,6 +38,15 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
             try {
                 // Resolve Target
                 if (targetUsername) {
+                    // Check if chatting with yourself
+                    if (targetUsername === user?.username) {
+                        setStatus(`📝 Note: You're chatting with yourself`);
+                        setTargetId(user.id);
+                        const hist = await api.get(`/chat/history/${user.id}`);
+                        setMessages(hist.data.map(formatMessage));
+                        return;
+                    }
+
                     setStatus(`Looking for @${targetUsername}...`);
                     const { data } = await api.get(`/profile/${targetUsername}`);
                     setTargetId(data.user.id);
@@ -95,6 +104,10 @@ export const useChatLogic = ({ targetUsername, groupName, onExit }: UseChatLogic
 
         const onDmReceive = (msg: any) => {
             const incomingSenderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
+            
+            // Skip if this is from me (optimistic update already added it)
+            if (incomingSenderId === user?.id) return;
+            
             // If I am chatting with targetId, and incoming message is FROM targetId
             if (targetId && incomingSenderId === targetId) {
                 setMessages(prev => [...prev, formatMessage(msg)]);

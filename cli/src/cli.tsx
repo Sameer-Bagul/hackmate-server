@@ -105,26 +105,19 @@ social.command('block <username>')
     .action((username) => { render(<AppProvider><Network action="block" target={username} /></AppProvider>); });
 
 // --- CHAT ---
-const chat = program.command('chat')
-    .description('Messaging')
-    .argument('[username]', 'Direct Message user')
-    .action((username) => {
-        if (username) render(<AppProvider><Chat targetUsername={username} /></AppProvider>);
-        else render(<AppProvider><Chat /></AppProvider>);
-    });
+const chat = program.command('chat').description('Messaging');
+
+chat.command('list')
+    .description('List conversations')
+    .action(() => { render(<AppProvider><ChatList /></AppProvider>); });
 
 chat.command('dm <username>')
     .description('Direct Message')
     .action((username) => { render(<AppProvider><Chat targetUsername={username} /></AppProvider>); });
 
-
 chat.command('group <groupname>')
     .description('Group Chat')
     .action((groupname) => { render(<AppProvider><Chat groupName={groupname} /></AppProvider>); });
-
-chat.command('list')
-    .description('List conversations')
-    .action(() => { render(<AppProvider><ChatList /></AppProvider>); });
 
 // --- PROJECTS (Added from featuresTodo) ---
 const project = program.command('project').description('Project Collaboration');
