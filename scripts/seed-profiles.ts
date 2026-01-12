@@ -1,5 +1,8 @@
 import { connectDB, UserModel, ProfileModel } from '../src/models/index.js';
 import argon2 from 'argon2';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const indianCities = [
     { city: 'Mumbai', country: 'India' },
@@ -82,6 +85,7 @@ const profiles = [
         ageRangeMin: 25,
         ageRangeMax: 32,
         bio: 'Full-stack developer who loves chai and code. Looking for someone who appreciates both tech and Bollywood!',
+        github: 'Sameer-Bagul',
     },
     {
         username: 'rahul_coder',
@@ -138,6 +142,7 @@ const profiles = [
         ageRangeMin: 26,
         ageRangeMax: 35,
         bio: 'React developer by day, biryani enthusiast by night. Hyderabad-based techie!',
+        github: 'gaearon', // Dan Abramov
     },
     {
         username: 'vikram_bytes',
@@ -152,6 +157,7 @@ const profiles = [
         ageRangeMin: 25,
         ageRangeMax: 32,
         bio: 'DevOps engineer who automates everything except feelings. Love trekking in Himalayas!',
+        github: 'torvalds', // Linus Torvalds
     },
     {
         username: 'kavya_dev',
@@ -208,6 +214,7 @@ const profiles = [
         ageRangeMin: 24,
         ageRangeMax: 30,
         bio: 'Backend wizard from Bangalore. Coffee addict and weekend hacker. Let\'s build something together!',
+        github: 'sindresorhus', // Sindre Sorhus
     },
     {
         username: 'meera_tech',
@@ -418,16 +425,16 @@ const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.len
 async function seedProfiles() {
     try {
         console.log('🔌 Connecting to database...');
-        const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/hackmate';
+        const mongoUrl = process.env.MONGO_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/hackmate';
         await connectDB(mongoUrl);
 
         console.log('🧹 Cleaning up existing test users...');
         const testUsernames = profiles.map(p => p.username);
         await UserModel.deleteMany({ username: { $in: testUsernames } });
-        await ProfileModel.deleteMany({ 
-            userId: { 
-                $in: await UserModel.find({ username: { $in: testUsernames } }).distinct('_id') 
-            } 
+        await ProfileModel.deleteMany({
+            userId: {
+                $in: await UserModel.find({ username: { $in: testUsernames } }).distinct('_id')
+            }
         });
 
         console.log(`\n👥 Creating 30 fake Indian profiles...\n`);
@@ -467,7 +474,7 @@ async function seedProfiles() {
                 company,
                 jobTitle,
                 yearsOfExperience: Math.floor(Math.random() * 10) + 1,
-                github: `${profile.username.replace('_', '')}${Math.floor(Math.random() * 999)}`,
+                github: (profile as any).github || `${profile.username.replace('_', '')}${Math.floor(Math.random() * 999)}`,
             };
 
             // Add age and gender if available
@@ -491,9 +498,9 @@ async function seedProfiles() {
 
             await ProfileModel.create(profileData);
 
-            const icon = profile.intent === 'dating' ? '💘' : 
-                        profile.intent === 'startup' ? '🚀' :
-                        profile.intent === 'collab' ? '🤝' :
+            const icon = profile.intent === 'dating' ? '💘' :
+                profile.intent === 'startup' ? '🚀' :
+                    profile.intent === 'collab' ? '🤝' :
                         profile.intent === 'mentorship' ? '🎓' : '👥';
 
             console.log(`${icon} Created: ${profile.fullName} (@${profile.username}) - ${profile.intent} - ${location.city}`);

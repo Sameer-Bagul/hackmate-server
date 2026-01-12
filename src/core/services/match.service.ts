@@ -9,7 +9,7 @@ export interface MatchResult extends IProfile {
 }
 
 export const calculateMatchScore = (
-    me: IProfile, 
+    me: IProfile,
     candidate: IProfile,
     myGitHub?: GitHubData,
     candidateGitHub?: GitHubData
@@ -17,123 +17,109 @@ export const calculateMatchScore = (
     let score = 0;
     const matchReasons: string[] = [];
 
-    // 1. Intent Match (20 points)
-    if (me.intent === candidate.intent) {
-        score += 20;
-        matchReasons.push(`🎯 Same intent: ${me.intent}`);
-    }
+    // --- 1. GitHub Compatibility (70 Points) ---
+    let githubScoreTotal = 0;
 
-    // 2. Stack Overlap (15 points)
-    const myStack = new Set(me.stack.map(s => s.toLowerCase()));
-    const commonTech = candidate.stack.filter(s => myStack.has(s.toLowerCase()));
+    if (myGitHub && candidateGitHub) {
+        // A. Language Overlap (30 points)
+        // Calculate Jaccard Similarity for languages
+        const myLangs = Object.keys(myGitHub.languages);
+        const candLangs = Object.keys(candidateGitHub.languages);
+        const myLangsSet = new Set(myLangs);
+        const candLangsSet = new Set(candLangs);
 
-    if (commonTech.length > 0) {
-        const techScore = Math.min(commonTech.length * 3, 15);
-        score += techScore;
-        matchReasons.push(`💻 Shared tech (${commonTech.length}): ${commonTech.slice(0, 5).join(', ')}`);
-    }
+        const commonLangs = candLangs.filter(l => myLangsSet.has(l));
+        const allLangs = new Set([...myLangs, ...candLangs]);
 
-    // 3. Location Match (10 points)
-    if (me.city && candidate.city) {
-        const myCity = me.city.toLowerCase();
-        const candCity = candidate.city.toLowerCase();
-        
-        if (myCity === candCity) {
-            score += 10;
-            matchReasons.push(`📍 Same city: ${me.city}`);
-        } else if (me.country && candidate.country && me.country.toLowerCase() === candidate.country.toLowerCase()) {
-            score += 5;
-            matchReasons.push(`🌍 Same country: ${me.country}`);
-        }
-    } else if (me.location && candidate.location) {
-        const myLoc = me.location.toLowerCase();
-        const candLoc = candidate.location.toLowerCase();
-        
-        if (myLoc === candLoc) {
-            score += 10;
-            matchReasons.push(`📍 Same location: ${me.location}`);
-        } else if (myLoc.includes(candLoc) || candLoc.includes(myLoc)) {
-            score += 5;
-            matchReasons.push(`📍 Nearby location: ${candidate.location}`);
-        }
-    }
+        if (allLangs.size > 0) {
+            const langOverlapRatio = commonLangs.length / allLangs.size;
+            const langScore = Math.round(langOverlapRatio * 30);
+            githubScoreTotal += langScore;
 
-    // 4. Age Compatibility (10 points) - for dating intent
-    if (me.intent === 'dating' && candidate.intent === 'dating' && me.age && candidate.age) {
-        // Check if candidate is within my age range
-        const inMyRange = (!me.ageRangeMin || candidate.age >= me.ageRangeMin) && 
-                         (!me.ageRangeMax || candidate.age <= me.ageRangeMax);
-        
-        // Check if I'm within candidate's age range
-        const inCandRange = (!candidate.ageRangeMin || me.age >= candidate.ageRangeMin) && 
-                           (!candidate.ageRangeMax || me.age <= candidate.ageRangeMax);
-        
-        if (inMyRange && inCandRange) {
-            score += 10;
-            matchReasons.push(`💘 Perfect age match (${candidate.age})`);
-        } else if (inMyRange || inCandRange) {
-            score += 5;
-            matchReasons.push(`💘 Age compatible (${candidate.age})`);
-        }
-    }
-
-    // 5. Dating Preferences (15 points) - orientation & gender match
-    if (me.intent === 'dating' && candidate.intent === 'dating') {
-        let datingScore = 0;
-        
-        // Check if orientation and gender are compatible
-        if (me.interestedIn && candidate.gender && candidate.gender !== 'prefer-not-to-say') {
-            if (me.interestedIn.includes(candidate.gender as 'male' | 'female' | 'other')) {
-                datingScore += 8;
-                matchReasons.push(`❤️ Gender preference match`);
+            if (commonLangs.length > 0) {
+                matchReasons.push(`💻 Codes in ${commonLangs.slice(0, 3).join(', ')}`);
             }
         }
-        
-        // Check if candidate is interested in my gender
-        if (candidate.interestedIn && me.gender && me.gender !== 'prefer-not-to-say') {
-            if (candidate.interestedIn.includes(me.gender as 'male' | 'female' | 'other')) {
-                datingScore += 7;
-            }
+
+        // B. Skill/Topic Overlap (20 points)
+        const mySkills = new Set(myGitHub.skills);
+        const candSkills = new Set(candidateGitHub.skills);
+        const commonSkills = candidateGitHub.skills.filter(s => mySkills.has(s));
+
+        if (commonSkills.length > 0) {
+            // Cap at 20 points, 2 points per shared skill
+            const skillScore = Math.min(commonSkills.length * 4, 20);
+            githubScoreTotal += skillScore;
+            matchReasons.push(`⚡ Shared skills: ${commonSkills.slice(0, 3).join(', ')}`);
         }
-        
-        score += Math.min(datingScore, 15);
+
+        // C. Activity/Scale Similarity (20 points)
+        // Compare public repos count to gauge experience level similarity
+        const myRepos = myGitHub.profile.public_repos;
+        const candRepos = candidateGitHub.profile.public_repos;
+        const diffRatio = Math.abs(myRepos - candRepos) / Math.max(myRepos, candRepos, 1);
+
+        // Closer repo counts = higher score (find peers)
+        // If 0 diff, 20 pts. If 100% diff (one has 0, one has 100), 0 pts.
+        const activityScore = Math.round((1 - diffRatio) * 20);
+        githubScoreTotal += activityScore;
+    } else {
+        matchReasons.push(`⚠️ Missing GitHub data for deep analysis`);
     }
 
-    // 6. Hobbies & Interests Overlap (10 points)
-    if (me.hobbies && candidate.hobbies && me.hobbies.length > 0 && candidate.hobbies.length > 0) {
+    score += githubScoreTotal;
+
+
+    // --- 2. Social & Personal Compatibility (30 Points) ---
+    let socialScoreTotal = 0;
+
+    // A. Location (10 points)
+    if (me.city && candidate.city && me.city.toLowerCase() === candidate.city.toLowerCase()) {
+        socialScoreTotal += 10;
+        matchReasons.push(`📍 Lives in ${me.city}`);
+    } else if (me.country && candidate.country && me.country.toLowerCase() === candidate.country.toLowerCase()) {
+        socialScoreTotal += 5;
+        matchReasons.push(`🌍 Lives in ${me.country}`);
+    }
+
+    // B. Hobbies/Interests (10 points)
+    if (me.hobbies && candidate.hobbies) {
         const myHobbies = new Set(me.hobbies.map(h => h.toLowerCase()));
         const commonHobbies = candidate.hobbies.filter(h => myHobbies.has(h.toLowerCase()));
-        
+
         if (commonHobbies.length > 0) {
-            const hobbyScore = Math.min(commonHobbies.length * 2, 10);
-            score += hobbyScore;
-            matchReasons.push(`🎨 Shared hobbies (${commonHobbies.length}): ${commonHobbies.slice(0, 3).join(', ')}`);
+            const hobbyScore = Math.min(commonHobbies.length * 3, 10);
+            socialScoreTotal += hobbyScore;
+            matchReasons.push(`🎨 Into ${commonHobbies.slice(0, 2).join(', ')}`);
         }
     }
 
-    // 7. GitHub Analysis (20 points)
-    if (myGitHub && candidateGitHub) {
-        // Language similarity
-        const myLangs = new Set(Object.keys(myGitHub.languages));
-        const candLangs = Object.keys(candidateGitHub.languages);
-        const commonLangs = candLangs.filter(lang => myLangs.has(lang));
-        
-        if (commonLangs.length > 0) {
-            const langScore = Math.min(commonLangs.length * 3, 10);
-            score += langScore;
-            matchReasons.push(`🔧 Common languages (${commonLangs.length}): ${commonLangs.slice(0, 3).join(', ')}`);
-        }
+    // C. Intent & Stack & Bio (10 points)
+    // Intent match (5 pts)
+    if (me.intent === candidate.intent) {
+        socialScoreTotal += 5;
+        matchReasons.push(`🎯 Same goal: ${me.intent}`);
+    }
 
-        // Skill/Topic similarity
-        const mySkills = new Set(myGitHub.skills);
-        const commonSkills = candidateGitHub.skills.filter(skill => mySkills.has(skill));
-        
-        if (commonSkills.length > 0) {
-            const skillScore = Math.min(commonSkills.length * 2, 10);
-            score += skillScore;
-            matchReasons.push(`⚡ Common skills (${commonSkills.length}): ${commonSkills.slice(0, 4).join(', ')}`);
+    // Stack Manual match (5 pts) - Fallback/Bonus if GitHub data missing or supplementary
+    if (!myGitHub || !candidateGitHub) {
+        const myStack = new Set(me.stack.map(s => s.toLowerCase()));
+        const commonStack = candidate.stack.filter(s => myStack.has(s.toLowerCase()));
+        if (commonStack.length > 0) {
+            socialScoreTotal += 5;
+        }
+    } else {
+        // If GitHub exists, we already scored mostly on that, but give small bonus
+        // for manually declared stack alignment
+        const myStack = new Set(me.stack.map(s => s.toLowerCase()));
+        const commonStack = candidate.stack.filter(s => myStack.has(s.toLowerCase()));
+        if (commonStack.length > 0) {
+            socialScoreTotal += 2; // Small bonus
         }
     }
+
+    score += Math.min(socialScoreTotal, 30);
+
 
     // Calculate compatibility percentage
     const maxPossibleScore = 100;

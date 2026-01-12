@@ -4,7 +4,7 @@ import { calculateMatchScore } from '../../core/services/match.service.js';
 import { analyzeGitHubData } from '../../core/services/github.service.js';
 
 export class MatchController {
-    
+
     async discover(request: FastifyRequest, reply: FastifyReply) {
         // @ts-ignore
         const userId = request.user.id;
@@ -15,12 +15,24 @@ export class MatchController {
         }
 
         // Fetch profiles with same intent only
-        const candidates = await ProfileModel.find({ 
+        const candidates = await ProfileModel.find({
             userId: { $ne: userId },
             intent: myProfile.intent
         }).populate('userId', 'username email');
 
-        const results = candidates.map(candidate => calculateMatchScore(myProfile, candidate));
+        // Fetch GitHub Data for me
+        let myGitHubData = undefined;
+        if (myProfile.github) {
+            myGitHubData = await analyzeGitHubData(myProfile.github);
+        }
+
+        const results = await Promise.all(candidates.map(async (candidate) => {
+            let candidateGitHubData = undefined;
+            if (candidate.github) {
+                candidateGitHubData = await analyzeGitHubData(candidate.github);
+            }
+            return calculateMatchScore(myProfile, candidate, myGitHubData || undefined, candidateGitHubData || undefined);
+        }));
 
         // Sort by score desc
         results.sort((a, b) => b.score - a.score);
@@ -31,9 +43,9 @@ export class MatchController {
     async getTopMatches(request: FastifyRequest, reply: FastifyReply) {
         // @ts-ignore
         const userId = request.user.id;
-        const { limit = 10, city, country, minScore = 0, intent } = request.query as { 
-            limit?: number; 
-            city?: string; 
+        const { limit = 10, city, country, minScore = 0, intent } = request.query as {
+            limit?: number;
+            city?: string;
             country?: string;
             minScore?: number;
             intent?: string;
@@ -45,23 +57,35 @@ export class MatchController {
         }
 
         // Build filter query
-        const filter: any = { 
+        const filter: any = {
             userId: { $ne: userId },
             intent: intent || myProfile.intent
         };
-        
+
         if (city) {
             filter.location = new RegExp(city, 'i');
         }
-        
+
         if (country) {
             filter.location = new RegExp(country, 'i');
         }
 
         const candidates = await ProfileModel.find(filter).populate('userId', 'username email');
 
+        // Fetch GitHub Data for me
+        let myGitHubData = undefined;
+        if (myProfile.github) {
+            myGitHubData = await analyzeGitHubData(myProfile.github);
+        }
+
         // Calculate matches
-        let results = candidates.map(candidate => calculateMatchScore(myProfile, candidate));
+        let results = await Promise.all(candidates.map(async (candidate) => {
+            let candidateGitHubData = undefined;
+            if (candidate.github) {
+                candidateGitHubData = await analyzeGitHubData(candidate.github);
+            }
+            return calculateMatchScore(myProfile, candidate, myGitHubData || undefined, candidateGitHubData || undefined);
+        }));
 
         // Filter by minimum score
         results = results.filter(r => r.score >= Number(minScore));
@@ -153,7 +177,7 @@ export class MatchController {
         }
 
         const githubData = await analyzeGitHubData(profile.github);
-        
+
         if (!githubData) {
             return reply.code(404).send({ message: 'GitHub profile not found or inaccessible' });
         }
@@ -180,7 +204,7 @@ export class MatchController {
         const { username } = request.params as { username: string };
 
         const githubData = await analyzeGitHubData(username);
-        
+
         if (!githubData) {
             return reply.code(404).send({ message: 'GitHub profile not found' });
         }

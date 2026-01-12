@@ -70,6 +70,7 @@ export const fetchGitHubRepos = async (username: string): Promise<GitHubRepo[]> 
 };
 
 export const analyzeGitHubData = async (username: string): Promise<GitHubData | null> => {
+    // Real implementation
     const profile = await fetchGitHubProfile(username);
     if (!profile) return null;
 
