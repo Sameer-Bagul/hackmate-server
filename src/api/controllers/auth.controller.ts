@@ -81,6 +81,16 @@ export class AuthController {
             throw error;
         }
     }
+
+    async checkAvailability(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const { username, email } = request.query as { username: string; email: string };
+            const result = await authService.checkAvailability(username, email);
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export const authController = new AuthController();

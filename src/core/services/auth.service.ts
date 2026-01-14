@@ -165,6 +165,19 @@ export class AuthService {
 
         return { message: 'Email verified successfully' };
     }
+    async checkAvailability(username: string, email: string) {
+        const usernameExists = await UserModel.findOne({ username });
+        if (usernameExists) {
+            return { available: false, field: 'username' };
+        }
+
+        const emailExists = await UserModel.findOne({ email });
+        if (emailExists) {
+            return { available: false, field: 'email' };
+        }
+
+        return { available: true };
+    }
 }
 
 export const authService = new AuthService();
