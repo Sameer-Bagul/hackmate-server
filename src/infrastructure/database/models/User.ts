@@ -8,6 +8,8 @@ export interface IUser extends Document {
     role: 'admin' | 'user';
     friends: mongoose.Types.ObjectId[];
     blocked: mongoose.Types.ObjectId[];
+    presence?: 'online' | 'away' | 'busy' | 'offline';
+    lastSeen?: Date;
     createdAt: Date;
     updatedAt: Date;
     otpCode?: string;
@@ -24,6 +26,8 @@ const UserSchema = new Schema<IUser>(
         profileId: { type: Schema.Types.ObjectId, ref: 'Profile' },
         friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
         blocked: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+        presence: { type: String, enum: ['online', 'away', 'busy', 'offline'], default: 'offline' },
+        lastSeen: { type: Date, default: Date.now },
         otpCode: { type: String },
         otpExpires: { type: Date },
         isVerified: { type: Boolean, default: false },

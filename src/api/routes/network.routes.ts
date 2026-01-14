@@ -13,6 +13,7 @@ const networkRoutes: FastifyPluginAsync = async (fastify) => {
     app.post('/reject', { schema: RequestIdBodySchema }, networkController.rejectRequestHandler);
     app.get('/friends', networkController.listFriendsHandler);
     app.post('/block', { schema: TargetUserBodySchema }, networkController.blockUserHandler);
+    app.delete('/friend/:userId', networkController.unfriendUserHandler);
 };
 
 export default networkRoutes;

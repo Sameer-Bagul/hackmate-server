@@ -22,6 +22,8 @@ interface GitHubRepo {
     stargazers_count: number;
     forks_count: number;
     topics: string[];
+    updated_at?: string;
+    created_at: string;
 }
 
 export interface GitHubData {
@@ -30,7 +32,13 @@ export interface GitHubData {
     topRepos: GitHubRepo[];
     totalStars: number;
     totalCommits: number;
+    totalForks: number;
     skills: string[];
+    frameworks: string[];
+    recentActivity: number; // commits in last 6 months
+    accountAge: number; // years
+    contributionScore: number; // based on repos + stars + forks
+    diversityScore: number; // variety of languages/topics
 }
 
 const GITHUB_API = 'https://api.github.com';
@@ -76,36 +84,79 @@ export const analyzeGitHubData = async (username: string): Promise<GitHubData | 
 
     const repos = await fetchGitHubRepos(username);
 
-    // Analyze languages
+    // Analyze languages with weighted count (more repos = higher proficiency)
     const languages: { [key: string]: number } = {};
     repos.forEach(repo => {
         if (repo.language) {
-            languages[repo.language] = (languages[repo.language] || 0) + 1;
+            // Weight by stars + 1 (so non-starred repos still count)
+            const weight = repo.stargazers_count + 1;
+            languages[repo.language] = (languages[repo.language] || 0) + weight;
         }
     });
 
-    // Calculate total stars
+    // Calculate total stars and forks
     const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+    const totalForks = repos.reduce((sum, repo) => sum + repo.forks_count, 0);
 
     // Get top repos
     const topRepos = repos
         .sort((a, b) => b.stargazers_count - a.stargazers_count)
         .slice(0, 10);
 
-    // Extract skills from languages and topics
+    // Extract skills and frameworks from languages and topics
     const skills = new Set<string>();
+    const frameworks = new Set<string>();
+    const frameworkKeywords = ['react', 'vue', 'angular', 'express', 'django', 'flask', 'spring', 'rails', 'laravel', 'next', 'nuxt', 'svelte', 'fastify', 'nest'];
+    
     Object.keys(languages).forEach(lang => skills.add(lang));
     repos.forEach(repo => {
-        repo.topics?.forEach(topic => skills.add(topic));
+        repo.topics?.forEach(topic => {
+            skills.add(topic);
+            // Identify frameworks
+            if (frameworkKeywords.some(fw => topic.toLowerCase().includes(fw))) {
+                frameworks.add(topic);
+            }
+        });
+        // Check repo name/description for frameworks
+        const repoText = `${repo.name} ${repo.description || ''}`.toLowerCase();
+        frameworkKeywords.forEach(fw => {
+            if (repoText.includes(fw)) {
+                frameworks.add(fw);
+            }
+        });
     });
+
+    // Calculate recent activity (repos updated in last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const recentActivity = repos.filter(repo => {
+        const updatedAt = new Date(repo.updated_at || repo.created_at);
+        return updatedAt > sixMonthsAgo;
+    }).length;
+
+    // Calculate account age in years
+    const accountCreated = new Date(profile.created_at);
+    const accountAge = (Date.now() - accountCreated.getTime()) / (1000 * 60 * 60 * 24 * 365);
+
+    // Contribution score (weighted metric)
+    const contributionScore = (repos.length * 1) + (totalStars * 5) + (totalForks * 3) + (profile.followers * 2);
+
+    // Diversity score (variety of languages and topics)
+    const diversityScore = Object.keys(languages).length + (Array.from(skills).length / 2);
 
     return {
         profile,
         languages,
         topRepos,
         totalStars,
+        totalForks,
         totalCommits: repos.length, // Approximate
-        skills: Array.from(skills)
+        skills: Array.from(skills),
+        frameworks: Array.from(frameworks),
+        recentActivity,
+        accountAge: Math.round(accountAge * 10) / 10,
+        contributionScore,
+        diversityScore
     };
 };
 

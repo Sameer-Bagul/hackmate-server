@@ -39,6 +39,20 @@ export class ProfileController {
             throw error;
         }
     }
+
+    async getUserStats(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            // @ts-ignore
+            const userId = request.user.id;
+            const stats = await profileService.getUserStats(userId);
+            return stats;
+        } catch (error: any) {
+            if (error.message === 'User not found') {
+                return reply.code(404).send({ message: error.message });
+            }
+            throw error;
+        }
+    }
 }
 
 export const profileController = new ProfileController();

@@ -8,6 +8,9 @@ import networkRoutes from './network.routes.js';
 import projectRoutes from './project.routes.js';
 import notificationRoutes from './notification.routes.js';
 import adminRoutes from './admin.routes.js';
+import settingsRoutes from './settings.routes.js';
+import dataRoutes from './data.routes.js';
+import presenceRoutes from './presence.routes.js';
 
 const apiRoutes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     await fastify.register(authRoutes, { prefix: '/auth' });
@@ -19,6 +22,9 @@ const apiRoutes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     await fastify.register(projectRoutes, { prefix: '/projects' });
     await fastify.register(notificationRoutes, { prefix: '/notifications' });
     await fastify.register(adminRoutes, { prefix: '/admin' });
+    await fastify.register(settingsRoutes, { prefix: '/settings' });
+    await fastify.register(dataRoutes, { prefix: '/data' });
+    await fastify.register(presenceRoutes, { prefix: '/presence' });
 };
 
 export default apiRoutes;

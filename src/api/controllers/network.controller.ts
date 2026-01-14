@@ -68,3 +68,18 @@ export const blockUserHandler = async (request: FastifyRequest<{ Body: TargetUse
     await networkService.blockUser(currentUserId, targetUserId);
     return { message: 'User blocked' };
 };
+
+export const unfriendUserHandler = async (request: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) => {
+    const { userId } = request.params;
+    const currentUserId = (request as AuthRequest).user.id;
+
+    if (userId === currentUserId) return reply.badRequest('Cannot unfriend yourself');
+
+    const currentUser = await networkService.findUserById(currentUserId);
+    if (!currentUser?.friends.includes(new Types.ObjectId(userId))) {
+        return reply.badRequest('Not in friends list');
+    }
+
+    await networkService.unfriendUser(currentUserId, userId);
+    return { message: 'Unfriended successfully' };
+};

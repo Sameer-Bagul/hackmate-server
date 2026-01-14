@@ -7,6 +7,7 @@ export * from './FriendRequest.js';
 export * from './Project.js';
 export * from './Group.js';
 export * from './Notification.js';
+export * from './Settings.js';
 
 export const connectDB = async (url: string) => {
     try {

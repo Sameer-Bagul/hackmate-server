@@ -8,6 +8,8 @@ const profileRoutes: FastifyPluginAsync = async (fastify, opts): Promise<void> =
 
     fastify.put('/', profileController.updateProfile.bind(profileController));
 
+    fastify.get('/stats', profileController.getUserStats.bind(profileController));
+
     fastify.get('/:username', profileController.getProfileByUsername.bind(profileController));
 };
 

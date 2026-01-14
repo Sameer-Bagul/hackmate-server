@@ -70,3 +70,13 @@ export const blockUser = async (currentUserId: string, targetUserId: string) => 
         $pull: { friends: currentUserId }
     });
 };
+
+export const unfriendUser = async (currentUserId: string, targetUserId: string) => {
+    await UserModel.findByIdAndUpdate(currentUserId, {
+        $pull: { friends: targetUserId }
+    });
+
+    await UserModel.findByIdAndUpdate(targetUserId, {
+        $pull: { friends: currentUserId }
+    });
+};
