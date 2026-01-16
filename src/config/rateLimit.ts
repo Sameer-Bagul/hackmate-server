@@ -2,9 +2,18 @@ import { FastifyPluginAsync } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 
 const rateLimitPlugin: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+    const isProd = process.env.NODE_ENV === 'production';
+    if (!isProd) {
+        // Disable rate limiting in development for convenience
+        return;
+    }
+
+    const max = Number(process.env.RATE_LIMIT_MAX ?? 100);
+    const timeWindow = process.env.RATE_LIMIT_WINDOW ?? '1 minute';
+
     await fastify.register(rateLimit, {
-        max: 100,
-        timeWindow: '1 minute',
+        max,
+        timeWindow,
         errorResponseBuilder: (request, context) => ({
             statusCode: 429,
             error: 'Too Many Requests',

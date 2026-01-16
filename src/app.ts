@@ -11,7 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function buildApp(opts: FastifyServerOptions = {}): Promise<FastifyInstance> {
-    const app = fastify(opts);
+    const isProd = process.env.NODE_ENV === 'production';
+    const app = fastify({
+        // Enable logger in dev, keep default in prod unless overridden
+        logger: opts.logger ?? (!isProd),
+        ...opts,
+    });
 
     app.setValidatorCompiler(validatorCompiler);
     app.setSerializerCompiler(serializerCompiler);
