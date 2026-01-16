@@ -1,7 +1,9 @@
 import { buildApp } from './app.js';
 import pino from 'pino';
 import * as dotenv from 'dotenv';
-dotenv.config();
+
+// Load .env but don't override existing environment variables (Azure sets PORT)
+dotenv.config({ override: false });
 
 const start = async () => {
     const isProd = process.env.NODE_ENV === 'production';
