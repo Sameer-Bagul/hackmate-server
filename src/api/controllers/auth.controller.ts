@@ -31,7 +31,6 @@ export class AuthController {
     }
 
     async sendOTP(request: FastifyRequest, reply: FastifyReply) {
-        // @ts-ignore
         const userId = request.user.id;
         
         const { user, otp } = await authService.sendOTP(userId);
@@ -65,7 +64,6 @@ export class AuthController {
 
     async verifyOTP(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // @ts-ignore
             const userId = request.user.id;
             const { code } = request.body as { code: string };
             

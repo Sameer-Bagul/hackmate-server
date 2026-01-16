@@ -31,6 +31,8 @@ export interface IProfile extends Document {
     twitter?: string;
     github?: string;
     website?: string;
+    // Stats
+    views?: number;
     // Contact
     mobileNumber?: string;
 }
@@ -74,6 +76,8 @@ const ProfileSchema = new Schema<IProfile>(
         twitter: { type: String },
         github: { type: String },
         website: { type: String },
+        // Stats
+        views: { type: Number, default: 0 },
         // Contact
         mobileNumber: { type: String },
     },

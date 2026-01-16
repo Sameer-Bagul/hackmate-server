@@ -6,7 +6,6 @@ import { analyzeGitHubData } from '../../core/services/github.service.js';
 export class MatchController {
 
     async discover(request: FastifyRequest, reply: FastifyReply) {
-        // @ts-ignore
         const userId = request.user.id;
 
         const myProfile = await ProfileModel.findOne({ userId });
@@ -41,7 +40,6 @@ export class MatchController {
     }
 
     async getTopMatches(request: FastifyRequest, reply: FastifyReply) {
-        // @ts-ignore
         const userId = request.user.id;
         const { limit = 10, city, country, minScore = 0, intent } = request.query as {
             limit?: number;
@@ -164,7 +162,6 @@ export class MatchController {
     }
 
     async syncGithub(request: FastifyRequest, reply: FastifyReply) {
-        // @ts-ignore
         const userId = request.user.id;
 
         const profile = await ProfileModel.findOne({ userId });

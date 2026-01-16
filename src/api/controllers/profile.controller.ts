@@ -6,7 +6,6 @@ export class ProfileController {
     
     async getMyProfile(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // @ts-ignore
             const userId = request.user.id;
             const profile = await profileService.getMyProfile(userId);
             return profile;
@@ -19,7 +18,6 @@ export class ProfileController {
     }
 
     async updateProfile(request: FastifyRequest, reply: FastifyReply) {
-        // @ts-ignore
         const userId = request.user.id;
         const body = ProfileUpdateSchema.parse(request.body);
         
@@ -42,7 +40,6 @@ export class ProfileController {
 
     async getUserStats(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // @ts-ignore
             const userId = request.user.id;
             const stats = await profileService.getUserStats(userId);
             return stats;

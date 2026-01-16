@@ -35,8 +35,12 @@ export class ProfileService {
             throw new Error('Profile not found');
         }
 
+        // Increment views
+        await ProfileModel.updateOne({ _id: profile._id }, { $inc: { views: 1 } });
+
         return {
             ...profile.toObject(),
+            views: (profile.views || 0) + 1,
             user: {
                 id: user._id,
                 username: user.username,
@@ -63,8 +67,9 @@ export class ProfileService {
         // Count groups
         const groupsCount = await GroupModel.countDocuments({ 'members.userId': userId });
 
-        // Count profile views (we'll store this in profile later, for now return 0)
-        const profileViews = 0;
+        // Get profile for views
+        const profile = await ProfileModel.findOne({ userId });
+        const profileViews = profile?.views || 0;
 
         // Calculate streak (placeholder - would need activity tracking)
         const streak = 0;
