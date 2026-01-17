@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { objectIdSchema } from './common.js';
 
 export const CreateProjectSchema = {
     body: z.object({
@@ -9,17 +10,17 @@ export const CreateProjectSchema = {
 };
 
 export const ProjectParamsSchema = {
-    params: z.object({ id: z.string() })
+    params: z.object({ id: objectIdSchema })
 };
 
 export const ApplyProjectSchema = {
-    params: z.object({ id: z.string() }),
+    params: z.object({ id: objectIdSchema }),
     body: z.object({ message: z.string().optional() })
 };
 
 export const ApplicantActionSchema = {
-    params: z.object({ id: z.string() }),
-    body: z.object({ applicantId: z.string() })
+    params: z.object({ id: objectIdSchema }),
+    body: z.object({ applicantId: objectIdSchema })
 };
 
 export type CreateProjectBody = z.infer<typeof CreateProjectSchema.body>;

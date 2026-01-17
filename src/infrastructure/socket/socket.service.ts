@@ -41,6 +41,11 @@ export const setupSocketService = (app: FastifyInstance) => {
 
         socket.on('message', async (data: any) => {
             try {
+                if (!userId) {
+                    app.log.warn('Unauthenticated socket attempted to send message');
+                    return;
+                }
+
                 const { to, groupId, content } = data;
 
                 if (!content) return;

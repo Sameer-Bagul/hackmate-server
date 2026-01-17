@@ -1,14 +1,15 @@
 import { z } from 'zod';
+import { objectIdSchema } from './common.js';
 
 export const GetChatHistorySchema = {
     params: z.object({
-        userId: z.string(),
+        userId: objectIdSchema,
     }),
 };
 
 export const GetGroupChatHistorySchema = {
     params: z.object({
-        groupId: z.string(),
+        groupId: objectIdSchema,
     }),
 };
 

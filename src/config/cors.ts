@@ -5,7 +5,7 @@ export default fp<FastifyCorsOptions>(async (fastify) => {
     const isProd = process.env.NODE_ENV === 'production';
 
     const origin = isProd
-        ? (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : true)
+        ? (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : false)
         : true;
 
     await fastify.register(cors, { origin });

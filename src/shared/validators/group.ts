@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { objectIdSchema } from './common.js';
 
 export const CreateGroupSchema = {
     body: z.object({
@@ -9,12 +10,12 @@ export const CreateGroupSchema = {
 };
 
 export const GroupParamsSchema = {
-    params: z.object({ id: z.string() })
+    params: z.object({ id: objectIdSchema })
 };
 
 export const GroupUserActionSchema = {
-    params: z.object({ id: z.string() }),
-    body: z.object({ userId: z.string() })
+    params: z.object({ id: objectIdSchema }),
+    body: z.object({ userId: objectIdSchema })
 };
 
 export type CreateGroupBody = z.infer<typeof CreateGroupSchema.body>;

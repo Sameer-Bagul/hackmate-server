@@ -35,12 +35,15 @@ export class ProfileService {
             throw new Error('Profile not found');
         }
 
-        // Increment views
-        await ProfileModel.updateOne({ _id: profile._id }, { $inc: { views: 1 } });
+        // Increment views and get updated profile
+        const updatedProfile = await ProfileModel.findOneAndUpdate(
+            { _id: profile._id },
+            { $inc: { views: 1 } },
+            { new: true }
+        );
 
         return {
-            ...profile.toObject(),
-            views: (profile.views || 0) + 1,
+            ...updatedProfile!.toObject(),
             user: {
                 id: user._id,
                 username: user.username,

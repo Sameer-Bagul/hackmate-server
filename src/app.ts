@@ -3,6 +3,7 @@ import autoload from '@fastify/autoload';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import { errorHandler } from './api/middlewares/index.js';
 
 // Refactored API routes
 import apiRoutes from './api/routes/index.js';
@@ -20,6 +21,9 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
 
     app.setValidatorCompiler(validatorCompiler);
     app.setSerializerCompiler(serializerCompiler);
+
+    // Register global error handler
+    app.setErrorHandler(errorHandler);
 
     // Register Config/Security Plugins
     await app.register(autoload, {
@@ -47,6 +51,18 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
 
     // Register all API Routes (auth, match, profile, chat, group, network, project, notification, admin)
     await app.register(apiRoutes, { prefix: '/api' });
+
+    app.get('/', async () => {
+        return { 
+            name: 'HackMate Server', 
+            version: '1.0.0',
+            status: 'running',
+            endpoints: {
+                health: '/health',
+                api: '/api'
+            }
+        };
+    });
 
     app.get('/health', async () => {
         return { status: 'ok', timestamp: new Date().toISOString() };

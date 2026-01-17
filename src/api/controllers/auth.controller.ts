@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { authService } from '../../core/services/auth.service.js';
 import { SignupSchema, LoginSchema } from '../../shared/validators/index.js';
+import { emailService } from '../../infrastructure/email/email.service.js';
 
 export class AuthController {
     
@@ -31,35 +32,20 @@ export class AuthController {
     }
 
     async sendOTP(request: FastifyRequest, reply: FastifyReply) {
-        const userId = request.user.id;
-        
-        const { user, otp } = await authService.sendOTP(userId);
+        try {
+            const userId = request.user.id;
+            
+            const { user, otp } = await authService.sendOTP(userId);
 
-        // Send email
-        if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-            const nodemailer = await import('nodemailer');
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASS,
-                },
-            });
+            // Use email service
+            await emailService.sendOTP(user.email, otp);
+            request.log.info(`📧 OTP sent to ${user.email}`);
 
-            await transporter.sendMail({
-                from: `"HackMate" <${process.env.SMTP_USER}>`,
-                to: user.email,
-                subject: 'Your HackMate Verification Code',
-                text: `Your OTP code is: ${otp}. It expires in 10 minutes.`,
-                html: `<b>Your OTP code is: ${otp}</b><br>It expires in 10 minutes.`,
-            });
-            request.log.info(`📧 Email sent to ${user.email}`);
-        } else {
-            request.log.warn('SMTP credentials missing, falling back to console log');
-            console.log(`📧 [MOCK EMAIL] To: ${user.email} | OTP: ${otp}`);
+            return { message: 'OTP sent' };
+        } catch (error: any) {
+            request.log.error(error, 'Failed to send OTP');
+            throw error;
         }
-
-        return { message: 'OTP sent' };
     }
 
     async verifyOTP(request: FastifyRequest, reply: FastifyReply) {

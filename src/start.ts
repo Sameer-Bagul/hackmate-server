@@ -2,8 +2,10 @@ import { buildApp } from './app.js';
 import pino from 'pino';
 import * as dotenv from 'dotenv';
 
-// Load .env but don't override existing environment variables (Azure sets PORT)
-dotenv.config({ override: false });
+// Only load .env in development (not in production/Azure)
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
+}
 
 const start = async () => {
     const isProd = process.env.NODE_ENV === 'production';
@@ -23,6 +25,7 @@ const start = async () => {
         const port = parseInt(process.env.PORT || '3001', 10);
         const host = process.env.HOST || '0.0.0.0';
 
+        app.log.info({ port, host, envPort: process.env.PORT }, 'Starting server with configuration');
         await app.listen({ port, host });
 
         // Assuming 'app' is a Fastify instance and 'io' is a Socket.IO server attached to it.

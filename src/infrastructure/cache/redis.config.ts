@@ -10,10 +10,19 @@ declare module 'fastify' {
 }
 
 export default fp(async (fastify: FastifyInstance) => {
+    // Validate Redis credentials
+    const isProd = process.env.NODE_ENV === 'production';
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    if (isProd && (!redisUrl || !redisToken)) {
+        throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required in production');
+    }
+
     // Initialize Upstash Redis client
     const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL || 'https://example.upstash.io',
-        token: process.env.UPSTASH_REDIS_REST_TOKEN || 'example_token',
+        url: redisUrl || 'https://example.upstash.io',
+        token: redisToken || 'example_token',
     });
 
     // Check connection (optional, as it's stateless HTTP, but good for sanity)

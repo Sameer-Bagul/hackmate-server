@@ -12,9 +12,14 @@ declare module 'fastify' {
 }
 
 export default fp<ServerOptions>(async (fastify: FastifyInstance) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    const origin = isProd
+        ? (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : false)
+        : '*';
+
     await fastify.register(io as any, {
         cors: {
-            origin: '*', // Allow all for dev, tighten for prod
+            origin,
             methods: ['GET', 'POST'],
         },
     });

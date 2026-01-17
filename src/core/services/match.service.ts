@@ -83,12 +83,14 @@ export const calculateMatchScore = (
             if (myWeight > 0 && candWeight > 0) {
                 commonLangs.push(lang);
                 // Higher overlap if both have similar proficiency
-                const similarity = 1 - Math.abs(myWeight - candWeight) / Math.max(myWeight, candWeight);
+                const maxWeight = Math.max(myWeight, candWeight);
+                const similarity = maxWeight > 0 ? 1 - Math.abs(myWeight - candWeight) / maxWeight : 0;
                 langOverlapScore += similarity;
             }
         });
         
-        breakdown.github.languageProficiency = Math.round(Math.min((langOverlapScore / allLangs.size) * 15, 15));
+        const langScore = allLangs.size > 0 ? (langOverlapScore / allLangs.size) * 15 : 0;
+        breakdown.github.languageProficiency = Math.round(Math.min(langScore, 15));
         score += breakdown.github.languageProficiency;
         
         if (commonLangs.length > 0) {
@@ -111,7 +113,8 @@ export const calculateMatchScore = (
         const candQuality = candidateGitHub.totalStars + (candidateGitHub.totalForks * 2);
         
         // Similar quality = better match (find equals)
-        const qualityDiff = Math.abs(myQuality - candQuality) / Math.max(myQuality, candQuality, 1);
+        const maxQuality = Math.max(myQuality, candQuality, 1);
+        const qualityDiff = maxQuality > 0 ? Math.abs(myQuality - candQuality) / maxQuality : 0;
         breakdown.github.projectQuality = Math.round((1 - qualityDiff) * 10);
         score += breakdown.github.projectQuality;
         
@@ -120,8 +123,10 @@ export const calculateMatchScore = (
         }
 
         // 1D. Activity Consistency (8 points) - Recent engagement
-        const myActivity = myGitHub.recentActivity / myGitHub.profile.public_repos;
-        const candActivity = candidateGitHub.recentActivity / candidateGitHub.profile.public_repos;
+        const myRepoCount = Math.max(myGitHub.profile.public_repos, 1);
+        const candRepoCount = Math.max(candidateGitHub.profile.public_repos, 1);
+        const myActivity = myGitHub.recentActivity / myRepoCount;
+        const candActivity = candidateGitHub.recentActivity / candRepoCount;
         
         const activitySimilarity = 1 - Math.abs(myActivity - candActivity);
         breakdown.github.activityConsistency = Math.round(Math.max(activitySimilarity * 8, 0));
@@ -135,7 +140,8 @@ export const calculateMatchScore = (
         const myContribution = Math.log10(myGitHub.contributionScore + 1);
         const candContribution = Math.log10(candidateGitHub.contributionScore + 1);
         
-        const contributionDiff = Math.abs(myContribution - candContribution) / Math.max(myContribution, candContribution, 1);
+        const maxContribution = Math.max(myContribution, candContribution, 1);
+        const contributionDiff = maxContribution > 0 ? Math.abs(myContribution - candContribution) / maxContribution : 0;
         breakdown.github.openSourceImpact = Math.round((1 - contributionDiff) * 8);
         score += breakdown.github.openSourceImpact;
 
@@ -143,7 +149,8 @@ export const calculateMatchScore = (
         const myDiversity = myGitHub.diversityScore;
         const candDiversity = candidateGitHub.diversityScore;
         
-        const diversityDiff = Math.abs(myDiversity - candDiversity) / Math.max(myDiversity, candDiversity, 1);
+        const maxDiversity = Math.max(myDiversity, candDiversity, 1);
+        const diversityDiff = maxDiversity > 0 ? Math.abs(myDiversity - candDiversity) / maxDiversity : 0;
         breakdown.github.codeDiversity = Math.round((1 - diversityDiff) * 7);
         score += breakdown.github.codeDiversity;
         
@@ -173,7 +180,8 @@ export const calculateMatchScore = (
         const myExperience = (myGitHub.accountAge * 2) + (myGitHub.profile.public_repos / 10);
         const candExperience = (candidateGitHub.accountAge * 2) + (candidateGitHub.profile.public_repos / 10);
         
-        const expDiff = Math.abs(myExperience - candExperience) / Math.max(myExperience, candExperience, 1);
+        const maxExperience = Math.max(myExperience, candExperience, 1);
+        const expDiff = maxExperience > 0 ? Math.abs(myExperience - candExperience) / maxExperience : 0;
         breakdown.social.careerStage = Math.round((1 - expDiff) * 7);
         score += breakdown.social.careerStage;
         
@@ -199,7 +207,8 @@ export const calculateMatchScore = (
         const myEngagement = myGitHub.profile.followers + myGitHub.profile.following;
         const candEngagement = candidateGitHub.profile.followers + candidateGitHub.profile.following;
         
-        const engagementDiff = Math.abs(myEngagement - candEngagement) / Math.max(myEngagement, candEngagement, 1);
+        const maxEngagement = Math.max(myEngagement, candEngagement, 1);
+        const engagementDiff = maxEngagement > 0 ? Math.abs(myEngagement - candEngagement) / maxEngagement : 0;
         breakdown.social.communityEngagement = Math.round((1 - engagementDiff) * 5);
         score += breakdown.social.communityEngagement;
         

@@ -14,6 +14,7 @@ export interface AuthenticatedUser {
     role: 'admin' | 'user';
 }
 
+export * from './common.js';
 export * from './auth.js';
 export * from './profile.js';
 export * from './project.js';
