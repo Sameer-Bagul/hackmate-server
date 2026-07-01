@@ -2,15 +2,17 @@ import { FastifyPluginAsync } from 'fastify';
 import { profileController } from '../controllers/profile.controller.js';
 
 const profileRoutes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-    fastify.addHook('onRequest', fastify.authenticate);
-
-    fastify.get('/', profileController.getMyProfile.bind(profileController));
-
-    fastify.put('/', profileController.updateProfile.bind(profileController));
-
-    fastify.get('/stats', profileController.getUserStats.bind(profileController));
-
+    // Public routes
     fastify.get('/:username', profileController.getProfileByUsername.bind(profileController));
+
+    // Protected routes
+    fastify.register(async (protectedContext) => {
+        protectedContext.addHook('onRequest', protectedContext.authenticate);
+        
+        protectedContext.get('/', profileController.getMyProfile.bind(profileController));
+        protectedContext.put('/', profileController.updateProfile.bind(profileController));
+        protectedContext.get('/stats', profileController.getUserStats.bind(profileController));
+    });
 };
 
 export default profileRoutes;
