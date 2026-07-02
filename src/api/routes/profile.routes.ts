@@ -3,6 +3,7 @@ import { profileController } from '../controllers/profile.controller.js';
 
 const profileRoutes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     // Public routes
+    fastify.get('/leaderboard', profileController.getLeaderboard.bind(profileController));
     fastify.get('/:username', profileController.getProfileByUsername.bind(profileController));
 
     // Protected routes

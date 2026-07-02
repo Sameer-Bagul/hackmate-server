@@ -38,6 +38,15 @@ export class ProfileController {
         }
     }
 
+    async getLeaderboard(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const leaderboard = await profileService.getLeaderboard();
+            return { data: leaderboard };
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
     async getUserStats(request: FastifyRequest, reply: FastifyReply) {
         try {
             const userId = request.user.id;

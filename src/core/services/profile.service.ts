@@ -49,9 +49,15 @@ export class ProfileService {
         // GitHub API Integration
         if (updatedProfile.github) {
             try {
+                let ghUsername = updatedProfile.github;
                 const match = updatedProfile.github.match(/github\.com\/([^\/]+)/);
                 if (match && match[1]) {
-                    const ghUsername = match[1];
+                    ghUsername = match[1];
+                }
+                // Strip @ or any trailing spaces just in case
+                ghUsername = ghUsername.replace('@', '').trim();
+                
+                if (ghUsername) {
                     const now = new Date();
                     const lastUpdated = updatedProfile.githubStats?.lastUpdated;
                     
@@ -153,6 +159,40 @@ export class ProfileService {
             streak,
             reputation
         };
+    }
+
+    async getLeaderboard() {
+        const topProfiles = await ProfileModel.find()
+            .sort({ views: -1 })
+            .limit(50)
+            .lean();
+
+        const leaderboard = [];
+        for (const profile of topProfiles) {
+            const user = await UserModel.findById(profile.userId).lean();
+            if (!user) continue;
+
+            const projectsCount = await ProjectModel.countDocuments({ ownerId: user._id });
+            const connectionsCount = user.friends?.length || 0;
+            
+            // Calculate a comprehensive HackMate ranking score
+            const reputation = connectionsCount * 100 + projectsCount * 50 + (profile.views || 0) * 10;
+            const githubScore = (profile.githubStats?.followers || 0) * 5 + (profile.githubStats?.publicRepos || 0) * 2;
+            const totalScore = reputation + githubScore;
+
+            leaderboard.push({
+                username: user.username,
+                fullName: profile.fullName || user.username,
+                avatarUrl: profile.githubStats?.avatarUrl || null,
+                intent: profile.intent,
+                views: profile.views || 0,
+                score: totalScore,
+                stack: profile.stack || []
+            });
+        }
+
+        // Sort array by final total score descending
+        return leaderboard.sort((a, b) => b.score - a.score);
     }
 }
 
