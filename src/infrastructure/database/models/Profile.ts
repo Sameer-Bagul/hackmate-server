@@ -41,6 +41,12 @@ export interface IProfile extends Document {
         followers?: number;
         publicRepos?: number;
         topLanguages?: Record<string, number>;
+        topRepo?: {
+            name: string;
+            stars: number;
+            url: string;
+            description?: string;
+        };
         lastUpdated?: Date;
     };
 }
@@ -94,6 +100,12 @@ const ProfileSchema = new Schema<IProfile>(
             followers: { type: Number },
             publicRepos: { type: Number },
             topLanguages: { type: Map, of: Number },
+            topRepo: {
+                name: { type: String },
+                stars: { type: Number },
+                url: { type: String },
+                description: { type: String }
+            },
             lastUpdated: { type: Date }
         }
     },

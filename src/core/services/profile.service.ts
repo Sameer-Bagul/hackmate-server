@@ -79,11 +79,23 @@ export class ProfileService {
                                 }
                             });
                             
+                            let topRepo = undefined;
+                            if (reposData.length > 0) {
+                                const sortedRepos = [...reposData].sort((a: any, b: any) => b.stargazers_count - a.stargazers_count);
+                                topRepo = {
+                                    name: sortedRepos[0].name,
+                                    stars: sortedRepos[0].stargazers_count,
+                                    url: sortedRepos[0].html_url,
+                                    description: sortedRepos[0].description
+                                };
+                            }
+                            
                             updatedProfile.githubStats = {
                                 avatarUrl: userData.avatar_url,
                                 followers: userData.followers,
                                 publicRepos: userData.public_repos,
                                 topLanguages,
+                                topRepo,
                                 lastUpdated: now
                             };
                             await updatedProfile.save();
