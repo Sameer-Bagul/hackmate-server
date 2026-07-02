@@ -178,6 +178,57 @@ export class AuthService {
 
         return { available: true };
     }
+
+    async forgotPassword(email: string) {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            // For security, don't reveal if user exists or not
+            return { message: 'If the email exists, a password reset OTP has been sent.' };
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetPasswordOtp = otp;
+        user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+        await user.save();
+
+        // In a real app, send email here. For now, log it.
+        console.log(`[AUTH SERVICE] Password reset OTP for ${email}: ${otp}`);
+
+        return { message: 'If the email exists, a password reset OTP has been sent.' };
+    }
+
+    async verifyResetOtp(email: string, otp: string) {
+        const user = await UserModel.findOne({ email });
+        
+        if (!user || !user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
+            throw new Error('Invalid or expired OTP');
+        }
+
+        if (!user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
+            throw new Error('OTP has expired');
+        }
+
+        return { message: 'OTP verified successfully. You can now reset your password.' };
+    }
+
+    async resetPassword(email: string, otp: string, newPassword: string) {
+        const user = await UserModel.findOne({ email });
+        
+        if (!user || !user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
+            throw new Error('Invalid or expired OTP');
+        }
+
+        if (!user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
+            throw new Error('OTP has expired');
+        }
+
+        user.passwordHash = await argon2.hash(newPassword);
+        user.resetPasswordOtp = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        return { message: 'Password reset successful. You can now log in.' };
+    }
 }
 
 export const authService = new AuthService();

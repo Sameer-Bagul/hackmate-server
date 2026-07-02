@@ -16,6 +16,10 @@ const authRoutes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     }, authController.verifyOTP.bind(authController));
 
     fastify.get('/check', authController.checkAvailability.bind(authController));
+
+    fastify.post('/forgot-password', authController.forgotPassword.bind(authController));
+    fastify.post('/verify-reset-otp', authController.verifyResetOtp.bind(authController));
+    fastify.post('/reset-password', authController.resetPassword.bind(authController));
 };
 
 export default authRoutes;

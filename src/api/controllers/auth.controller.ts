@@ -75,6 +75,42 @@ export class AuthController {
             throw error;
         }
     }
+
+    async forgotPassword(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const { email } = request.body as { email: string };
+            const result = await authService.forgotPassword(email);
+            return result;
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    async verifyResetOtp(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const { email, otp } = request.body as { email: string; otp: string };
+            const result = await authService.verifyResetOtp(email, otp);
+            return result;
+        } catch (error: any) {
+            if (error.message === 'Invalid or expired OTP' || error.message === 'OTP has expired') {
+                return reply.code(400).send({ message: error.message });
+            }
+            throw error;
+        }
+    }
+
+    async resetPassword(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const { email, otp, newPassword } = request.body as { email: string; otp: string; newPassword: string };
+            const result = await authService.resetPassword(email, otp, newPassword);
+            return result;
+        } catch (error: any) {
+            if (error.message === 'Invalid or expired OTP' || error.message === 'OTP has expired') {
+                return reply.code(400).send({ message: error.message });
+            }
+            throw error;
+        }
+    }
 }
 
 export const authController = new AuthController();
