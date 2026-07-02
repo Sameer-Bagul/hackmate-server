@@ -35,6 +35,14 @@ export interface IProfile extends Document {
     views?: number;
     // Contact
     mobileNumber?: string;
+    // GitHub Integration
+    githubStats?: {
+        avatarUrl?: string;
+        followers?: number;
+        publicRepos?: number;
+        topLanguages?: Record<string, number>;
+        lastUpdated?: Date;
+    };
 }
 
 const ProfileSchema = new Schema<IProfile>(
@@ -80,6 +88,14 @@ const ProfileSchema = new Schema<IProfile>(
         views: { type: Number, default: 0 },
         // Contact
         mobileNumber: { type: String },
+        // GitHub Integration
+        githubStats: {
+            avatarUrl: { type: String },
+            followers: { type: Number },
+            publicRepos: { type: Number },
+            topLanguages: { type: Map, of: Number },
+            lastUpdated: { type: Date }
+        }
     },
     { timestamps: true }
 );

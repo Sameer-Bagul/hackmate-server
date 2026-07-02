@@ -36,18 +36,82 @@ export class ProfileService {
         }
 
         // Increment views and get updated profile
-        const updatedProfile = await ProfileModel.findOneAndUpdate(
+        let updatedProfile = await ProfileModel.findOneAndUpdate(
             { _id: profile._id },
             { $inc: { views: 1 } },
             { new: true }
         );
 
+        if (!updatedProfile) {
+            throw new Error('Failed to update profile views');
+        }
+
+        // GitHub API Integration
+        if (updatedProfile.github) {
+            try {
+                const match = updatedProfile.github.match(/github\.com\/([^\/]+)/);
+                if (match && match[1]) {
+                    const ghUsername = match[1];
+                    const now = new Date();
+                    const lastUpdated = updatedProfile.githubStats?.lastUpdated;
+                    
+                    // Only update once per hour to avoid rate limits
+                    if (!lastUpdated || (now.getTime() - lastUpdated.getTime() > 3600000)) {
+                        const [userRes, reposRes] = await Promise.all([
+                            fetch(`https://api.github.com/users/${ghUsername}`),
+                            fetch(`https://api.github.com/users/${ghUsername}/repos?per_page=100`)
+                        ]);
+                        
+                        if (userRes.ok && reposRes.ok) {
+                            const userData = await userRes.json() as any;
+                            const reposData = await reposRes.json() as any;
+                            
+                            const topLanguages: Record<string, number> = {};
+                            reposData.forEach((repo: any) => {
+                                if (repo.language) {
+                                    topLanguages[repo.language] = (topLanguages[repo.language] || 0) + 1;
+                                }
+                            });
+                            
+                            updatedProfile.githubStats = {
+                                avatarUrl: userData.avatar_url,
+                                followers: userData.followers,
+                                publicRepos: userData.public_repos,
+                                topLanguages,
+                                lastUpdated: now
+                            };
+                            await updatedProfile.save();
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch github stats:", err);
+            }
+        }
+
+        // Aggregate Ecosystem Data
+        const projects = await ProjectModel.find({ ownerId: user._id }).limit(10);
+        const connectionsCount = user.friends?.length || 0;
+        const messagesCount = await MessageModel.countDocuments({ senderId: user._id });
+        const groupsCount = await GroupModel.countDocuments({ 'members.userId': user._id });
+        
+        const reputation = connectionsCount * 100 + projects.length * 50;
+
         return {
-            ...updatedProfile!.toObject(),
+            ...updatedProfile.toObject(),
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                presence: user.presence,
+                role: user.role
+            },
+            ecosystem: {
+                projects,
+                connectionsCount,
+                reputation,
+                messagesCount,
+                groupsCount
             }
         };
     }
