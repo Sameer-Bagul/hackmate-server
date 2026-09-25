@@ -3,7 +3,10 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
     username: string;
     email: string;
-    passwordHash: string;
+    passwordHash?: string;
+    githubId?: string;
+    githubAccessToken?: string;
+    avatarUrl?: string;
     profileId?: mongoose.Types.ObjectId;
     role: 'admin' | 'user';
     friends: mongoose.Types.ObjectId[];
@@ -23,7 +26,10 @@ const UserSchema = new Schema<IUser>(
     {
         username: { type: String, required: true, unique: true, index: true },
         email: { type: String, required: true, unique: true },
-        passwordHash: { type: String, required: true },
+        passwordHash: { type: String },
+        githubId: { type: String, sparse: true, unique: true },
+        githubAccessToken: { type: String },
+        avatarUrl: { type: String },
         role: { type: String, enum: ['admin', 'user'], default: 'user' },
         profileId: { type: Schema.Types.ObjectId, ref: 'Profile' },
         friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],

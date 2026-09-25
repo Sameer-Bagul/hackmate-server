@@ -49,6 +49,7 @@ export interface IProfile extends Document {
         };
         lastUpdated?: Date;
     };
+    githubData?: any; // Store the full analyzed GitHubData object
 }
 
 const ProfileSchema = new Schema<IProfile>(
@@ -107,7 +108,8 @@ const ProfileSchema = new Schema<IProfile>(
                 description: { type: String }
             },
             lastUpdated: { type: Date }
-        }
+        },
+        githubData: { type: Schema.Types.Mixed } // Store the full analyzed GitHubData object
     },
     { timestamps: true }
 );

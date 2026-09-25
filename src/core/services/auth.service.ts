@@ -1,5 +1,7 @@
 import argon2 from 'argon2';
 import { UserModel, ProfileModel } from '../../infrastructure/database/models/index.js';
+import { syncGitHubProfileBackground } from './github.service.js';
+import { emailService } from '../../infrastructure/email/email.service.js';
 
 interface SignupData {
     username: string;
@@ -108,6 +110,10 @@ export class AuthService {
             throw new Error('Invalid credentials');
         }
 
+        if (!user.passwordHash) {
+            throw new Error('Please login with GitHub');
+        }
+
         const valid = await argon2.verify(user.passwordHash, data.password);
         if (!valid) {
             throw new Error('Invalid credentials');
@@ -135,6 +141,8 @@ export class AuthService {
         user.otpCode = otp;
         user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
         await user.save();
+
+        await emailService.sendOTP(user.email, otp);
 
         return { user, otp };
     }
@@ -191,8 +199,7 @@ export class AuthService {
         user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
         await user.save();
 
-        // In a real app, send email here. For now, log it.
-        console.log(`[AUTH SERVICE] Password reset OTP for ${email}: ${otp}`);
+        await emailService.sendPasswordResetOTP(email, otp);
 
         return { message: 'If the email exists, a password reset OTP has been sent.' };
     }
@@ -228,6 +235,86 @@ export class AuthService {
         await user.save();
 
         return { message: 'Password reset successful. You can now log in.' };
+    }
+
+    async handleGitHubOAuth(accessToken: string, jwtSign: (payload: any) => string, existingUserId?: string) {
+        const { default: axios } = await import('axios');
+        // Fetch user profile from GitHub
+        const { data: profile } = await axios.get('https://api.github.com/user', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        // Fetch user emails from GitHub (sometimes email in profile is null)
+        const { data: emails } = await axios.get('https://api.github.com/user/emails', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        const primaryEmail = emails.find((e: any) => e.primary)?.email || profile.email;
+
+        if (!primaryEmail) throw new Error('GitHub account must have an email address');
+
+        let user;
+        if (existingUserId) {
+            user = await UserModel.findById(existingUserId);
+            if (!user) throw new Error('User not found');
+            user.githubId = profile.id.toString();
+            user.githubAccessToken = accessToken;
+            user.avatarUrl = profile.avatar_url;
+            await user.save();
+        } else {
+            user = await UserModel.findOne({
+                $or: [{ githubId: profile.id.toString() }, { email: primaryEmail }]
+            });
+
+            if (user) {
+                // Update existing user with latest GitHub token and ID if not already set
+                user.githubId = profile.id.toString();
+                user.githubAccessToken = accessToken;
+                user.avatarUrl = profile.avatar_url;
+                await user.save();
+            } else {
+                // Create new user
+                user = await UserModel.create({
+                    username: profile.login, // Note: might conflict if username taken, could append random string
+                    email: primaryEmail,
+                    githubId: profile.id.toString(),
+                    githubAccessToken: accessToken,
+                    avatarUrl: profile.avatar_url,
+                    isVerified: true // GitHub emails are verified
+                });
+
+                // Initialize minimal profile
+                await ProfileModel.create({
+                    userId: user._id,
+                    fullName: profile.name,
+                    bio: profile.bio,
+                    location: profile.location,
+                    github: profile.login,
+                    company: profile.company,
+                    intent: 'collab',
+                    stack: []
+                });
+            }
+        }
+
+        const token = jwtSign({ id: user._id, username: user.username, role: user.role });
+        
+        // Start background synchronization for deep GitHub statistics
+        syncGitHubProfileBackground(user._id.toString(), profile.login, accessToken).catch(err => {
+            console.error("Failed to start background GitHub sync", err);
+        });
+
+        return { 
+            token, 
+            user: { 
+                id: user._id, 
+                username: user.username, 
+                email: user.email, 
+                role: user.role,
+                avatarUrl: user.avatarUrl,
+                githubId: user.githubId
+            } 
+        };
     }
 }
 

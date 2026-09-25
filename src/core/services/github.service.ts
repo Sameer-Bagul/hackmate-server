@@ -2,6 +2,7 @@ import axios from 'axios';
 
 interface GitHubProfile {
     login: string;
+    avatar_url: string;
     name: string;
     bio: string;
     location: string;
@@ -22,6 +23,7 @@ interface GitHubRepo {
     stargazers_count: number;
     forks_count: number;
     topics: string[];
+    html_url: string;
     updated_at?: string;
     created_at: string;
 }
@@ -43,14 +45,15 @@ export interface GitHubData {
 
 const GITHUB_API = 'https://api.github.com';
 
-export const fetchGitHubProfile = async (username: string): Promise<GitHubProfile | null> => {
+export const fetchGitHubProfile = async (username: string, token?: string): Promise<GitHubProfile | null> => {
     try {
-        const response = await axios.get(`${GITHUB_API}/users/${username}`, {
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'HackMate-App'
-            }
-        });
+        const headers: any = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'HackMate-App'
+        };
+        if (token) headers['Authorization'] = `token ${token}`;
+
+        const response = await axios.get(`${GITHUB_API}/users/${username}`, { headers });
         return response.data;
     } catch (error) {
         console.error(`Failed to fetch GitHub profile for ${username}:`, error);
@@ -58,17 +61,20 @@ export const fetchGitHubProfile = async (username: string): Promise<GitHubProfil
     }
 };
 
-export const fetchGitHubRepos = async (username: string): Promise<GitHubRepo[]> => {
+export const fetchGitHubRepos = async (username: string, token?: string): Promise<GitHubRepo[]> => {
     try {
+        const headers: any = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'HackMate-App'
+        };
+        if (token) headers['Authorization'] = `token ${token}`;
+
         const response = await axios.get(`${GITHUB_API}/users/${username}/repos`, {
             params: {
                 sort: 'updated',
                 per_page: 100
             },
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'HackMate-App'
-            }
+            headers
         });
         return response.data;
     } catch (error) {
@@ -77,12 +83,12 @@ export const fetchGitHubRepos = async (username: string): Promise<GitHubRepo[]> 
     }
 };
 
-export const analyzeGitHubData = async (username: string): Promise<GitHubData | null> => {
+export const analyzeGitHubData = async (username: string, token?: string): Promise<GitHubData | null> => {
     // Real implementation
-    const profile = await fetchGitHubProfile(username);
+    const profile = await fetchGitHubProfile(username, token);
     if (!profile) return null;
 
-    const repos = await fetchGitHubRepos(username);
+    const repos = await fetchGitHubRepos(username, token);
 
     // Analyze languages with weighted count (more repos = higher proficiency)
     const languages: { [key: string]: number } = {};
@@ -179,4 +185,54 @@ export const calculateGitHubScore = (data: GitHubData): number => {
     if (data.profile.blog) score += 3;
 
     return Math.min(score, 50); // Max 50 points from GitHub
+};
+
+import { ProfileModel } from '../../infrastructure/database/models/Profile.js';
+
+/**
+ * Background Job: Fetch GitHub stats and store them in the Profile database.
+ * This should be called asynchronously (fire and forget) to prevent blocking auth flows.
+ */
+export const syncGitHubProfileBackground = async (userId: string, username: string, token: string) => {
+    console.log(`[BACKGROUND JOB] Starting GitHub Sync for ${username}...`);
+    try {
+        const data = await analyzeGitHubData(username, token);
+        if (!data) {
+            console.error(`[BACKGROUND JOB] Failed to gather data for ${username}`);
+            return;
+        }
+
+        // Format for backward compatibility
+        const topLanguagesRecord: Record<string, number> = {};
+        Object.entries(data.languages).forEach(([k, v]) => topLanguagesRecord[k] = v);
+
+        const githubStats = {
+            avatarUrl: data.profile.avatar_url,
+            followers: data.profile.followers,
+            publicRepos: data.profile.public_repos,
+            topLanguages: topLanguagesRecord,
+            topRepo: data.topRepos[0] ? {
+                name: data.topRepos[0].name,
+                stars: data.topRepos[0].stargazers_count,
+                url: data.topRepos[0].html_url,
+                description: data.topRepos[0].description
+            } : undefined,
+            lastUpdated: new Date()
+        };
+
+        // Automatically push top 3 languages/frameworks to user's tech stack 
+        // if they don't have them to improve matching.
+        const topSkills = [...data.languages ? Object.keys(data.languages).slice(0, 3) : [], ...data.frameworks.slice(0, 2)];
+
+        await ProfileModel.findOneAndUpdate(
+            { userId },
+            { 
+                $set: { githubStats, githubData: data, github: username },
+                $addToSet: { stack: { $each: topSkills } }
+            }
+        );
+        console.log(`[BACKGROUND JOB] Successfully synced GitHub data for ${username}`);
+    } catch (error) {
+        console.error(`[BACKGROUND JOB] Error syncing GitHub profile for ${username}:`, error);
+    }
 };

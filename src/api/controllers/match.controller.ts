@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProfileModel, UserModel } from '../../infrastructure/database/models/index.js';
 import { calculateMatchScore } from '../../core/services/match.service.js';
-import { analyzeGitHubData } from '../../core/services/github.service.js';
+import { analyzeGitHubData, syncGitHubProfileBackground } from '../../core/services/github.service.js';
 
 export class MatchController {
 
@@ -19,17 +19,11 @@ export class MatchController {
             intent: myProfile.intent
         }).populate('userId', 'username email');
 
-        // Fetch GitHub Data for me
-        let myGitHubData = undefined;
-        if (myProfile.github) {
-            myGitHubData = await analyzeGitHubData(myProfile.github);
-        }
+        // Use cached GitHub Data
+        let myGitHubData = myProfile.githubData;
 
         const results = await Promise.all(candidates.map(async (candidate) => {
-            let candidateGitHubData = undefined;
-            if (candidate.github) {
-                candidateGitHubData = await analyzeGitHubData(candidate.github);
-            }
+            let candidateGitHubData = candidate.githubData;
             return calculateMatchScore(myProfile, candidate, myGitHubData || undefined, candidateGitHubData || undefined);
         }));
 
@@ -70,18 +64,12 @@ export class MatchController {
 
         const candidates = await ProfileModel.find(filter).populate('userId', 'username email');
 
-        // Fetch GitHub Data for me
-        let myGitHubData = undefined;
-        if (myProfile.github) {
-            myGitHubData = await analyzeGitHubData(myProfile.github);
-        }
+        // Use cached GitHub Data for me
+        let myGitHubData = myProfile.githubData;
 
         // Calculate matches
         let results = await Promise.all(candidates.map(async (candidate) => {
-            let candidateGitHubData = undefined;
-            if (candidate.github) {
-                candidateGitHubData = await analyzeGitHubData(candidate.github);
-            }
+            let candidateGitHubData = candidate.githubData;
             return calculateMatchScore(myProfile, candidate, myGitHubData || undefined, candidateGitHubData || undefined);
         }));
 
@@ -117,14 +105,9 @@ export class MatchController {
             return reply.code(404).send({ message: 'One or both profiles not found' });
         }
 
-        // Fetch GitHub data if available
-        let github1, github2;
-        if (profile1.github) {
-            github1 = await analyzeGitHubData(profile1.github);
-        }
-        if (profile2.github) {
-            github2 = await analyzeGitHubData(profile2.github);
-        }
+        // Fetch cached GitHub data
+        let github1 = profile1.githubData;
+        let github2 = profile2.githubData;
 
         // Calculate match score both ways
         const match1to2 = calculateMatchScore(profile1, profile2, github1 || undefined, github2 || undefined);
@@ -173,27 +156,13 @@ export class MatchController {
             return reply.code(400).send({ message: 'GitHub username not set in profile' });
         }
 
-        const githubData = await analyzeGitHubData(profile.github);
-
-        if (!githubData) {
-            return reply.code(404).send({ message: 'GitHub profile not found or inaccessible' });
-        }
-
-        // Update profile with GitHub data
-        profile.stack = [...new Set([...profile.stack, ...githubData.skills])];
-        if (githubData.profile.location && !profile.location) {
-            profile.location = githubData.profile.location;
-        }
-        if (githubData.profile.bio && !profile.bio) {
-            profile.bio = githubData.profile.bio;
-        }
-
-        await profile.save();
-
+        // Sync Github data in background
+        const token = (request.user as any)?.githubAccessToken || '';
+        syncGitHubProfileBackground(userId, profile.github, token).catch((err: any) => console.error(err));
+        
         return {
-            message: 'GitHub data synced successfully',
-            profile,
-            githubData
+            message: 'GitHub data sync started in background',
+            profile
         };
     }
 
